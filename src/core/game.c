@@ -26,12 +26,12 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
 
     while (is_running) {
         getDeltaTime(&start, &delta_time, &frame_c);
+        printf("FPS: %f\n", delta_time);
         if (!handleEvents(&mov_x_comp, &mov_y_comp)) {
             is_running = 0;
             break;
         }
         /*
-        TODO: Make central player with moving world.
         TODO: Set a FPS cap of around 60-120 fps and then REMOVE THE VSYNC FROM THE renderer constraints while creating.
         TODO: Make a game_state_handler moduele.
         */

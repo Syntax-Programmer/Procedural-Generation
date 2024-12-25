@@ -73,7 +73,6 @@ void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data, int x_offset
 
 static void handleKeyboard(int* pX_comp, int* pY_comp) {
     const Uint8* state = SDL_GetKeyboardState(NULL);
-    *pX_comp = *pY_comp = 0;
 
     if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) {
         *pY_comp -= 1;

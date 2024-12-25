@@ -24,7 +24,7 @@ void setRectSize(SDL_Rect* pRect, int w, int h) {
     pRect->h = h;
 }
 
-void getMovOffset(int vel, double delta_time, int x_comp, int y_comp, int* pX_norm, int* pY_norm) {
+void getWorldMovOffset(int vel, double delta_time, int x_comp, int y_comp, int* pX_norm, int* pY_norm) {
     float magnitude = sqrt((x_comp * x_comp) + (y_comp * y_comp));
     if (magnitude == 0.0f) {
         return;

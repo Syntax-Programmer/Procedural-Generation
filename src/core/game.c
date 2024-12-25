@@ -22,11 +22,10 @@ static int initGame(GameContext* pMain_context, Player* pPlayer, Obj*** pLvl_dat
 static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer, Obj** lvl_data) {
     time_t start = time(NULL);
     double delta_time = 1.0 / 60.0;
-    int frame_c = 0, mov_x_comp = 0, mov_y_comp = 0, x_offset = 0, y_offset = 0;
+    int frame_c = 0, mov_x_comp = 0, mov_y_comp = 0, mov_x_offset = 0, mov_y_offset = 0;
 
     while (is_running) {
         getDeltaTime(&start, &delta_time, &frame_c);
-        printf("FPS: %f\n", delta_time);
         if (!handleEvents(&mov_x_comp, &mov_y_comp)) {
             is_running = 0;
             break;
@@ -35,9 +34,9 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
         TODO: Set a FPS cap of around 60-120 fps and then REMOVE THE VSYNC FROM THE renderer constraints while creating.
         TODO: Make a game_state_handler moduele.
         */
-        getMovOffset(pPlayer->vel, delta_time, mov_x_comp, mov_y_comp, &x_offset, &y_offset);
-        render(pMain_context, pPlayer, lvl_data, x_offset, y_offset);
-        x_offset = y_offset = 0;
+        getWorldMovOffset(pPlayer->vel, delta_time, mov_x_comp, mov_y_comp, &mov_x_offset, &mov_y_offset);
+        render(pMain_context, pPlayer, lvl_data, mov_x_offset, mov_y_offset);
+        mov_x_comp = mov_y_comp = mov_x_offset = mov_y_offset = 0;
         frame_c++;
     }
 }

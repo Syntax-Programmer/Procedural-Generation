@@ -37,11 +37,6 @@ void getWorldMovOffset(int vel, double delta_time, int x_comp, int y_comp, int* 
     *pY_norm = (int)(norm_y * delta_dist);
 }
 
-void moveRect(SDL_Rect* pRect, int x_offset, int y_offset) {
-    pRect->x -= x_offset;
-    pRect->y -= y_offset;
-}
-
 int AABBCollision(const SDL_Rect* pRect1, const SDL_Rect* pRect2) {
     return (
         pRect1->x < pRect2->x + pRect2->w &&

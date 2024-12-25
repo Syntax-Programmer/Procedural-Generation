@@ -44,7 +44,7 @@ void quitSDL(GameContext* pMain_context) {
 }
 
 void renderObj(GameContext* pContext, Obj* pTo_render, int x_offset, int y_offset) {
-    moveRect(&(pTo_render->rect), x_offset, y_offset);
+    setRectPos(&(pTo_render->rect), pTo_render->rect.x - x_offset, pTo_render->rect.y - y_offset);
     // Tp ensure rects only in fov get rendered.
     if (!isRectInFOV(&(pTo_render->rect))) {
         return;

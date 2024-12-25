@@ -50,3 +50,11 @@ int AABBCollision(const SDL_Rect* pRect1, const SDL_Rect* pRect2) {
         pRect1->y + pRect1->h > pRect2->y
     );
 }
+
+int isRectInFOV(const SDL_Rect* pRect) {
+    if (pRect->x > SCREEN_WIDTH || pRect->x + pRect->w < 0 ||
+        pRect->y > SCREEN_HEIGHT || pRect->y + pRect->h < 0) {
+            return 0;
+    }
+    return 1;
+}

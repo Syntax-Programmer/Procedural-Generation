@@ -5,6 +5,7 @@
 #include "player.h"
 #include "level_parser.h"
 #include "global_consts.h"
+#include "state_handler.h"
 
 extern void game();
 

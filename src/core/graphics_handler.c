@@ -45,29 +45,22 @@ void quitSDL(GameContext* pMain_context) {
 
 void renderObj(GameContext* pContext, Obj* pTo_render, int x_offset, int y_offset) {
     moveRect(&(pTo_render->rect), x_offset, y_offset);
-    // This ensures that rects in FOV only are rendered.
-    if (pTo_render->rect.x > SCREEN_WIDTH || pTo_render->rect.x + pTo_render->rect.w < 0 ||
-        pTo_render->rect.y > SCREEN_HEIGHT || pTo_render->rect.y + pTo_render->rect.h < 0) {
-            return;
+    // Tp ensure rects only in fov get rendered.
+    if (!isRectInFOV(&(pTo_render->rect))) {
+        return;
     }
     SDL_SetRenderDrawColor(pContext->renderer, pTo_render->r, pTo_render->g, pTo_render->b, pTo_render->a);
     SDL_RenderFillRect(pContext->renderer, &(pTo_render->rect));
 }
 
 void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data, int x_offset, int y_offset) {
-    int collided = 0;
-
     SDL_SetRenderDrawColor(pContext->renderer, 255, 255, 255, 255);
     SDL_RenderClear(pContext->renderer);
     SDL_SetRenderDrawColor(pContext->renderer, pPlayer->obj.r, pPlayer->obj.g, pPlayer->obj.b, pPlayer->obj.a);
     SDL_RenderFillRect(pContext->renderer, &(pPlayer->obj.rect));
     for (int i = 0; lvl_data[i]; i++) {
         renderObj(pContext, lvl_data[i], x_offset, y_offset);
-        if (AABBCollision(&(pPlayer->obj.rect), &(lvl_data[i]->rect))) { //TODO: Put this and, \n
-            collided = 1;
-        }
     }
-    pPlayer->obj.b = (collided) ? 100 : 255; //TODO: that in a gamestate updater.
     SDL_RenderPresent(pContext->renderer);
 }
 

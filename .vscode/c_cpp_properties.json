@@ -6,7 +6,8 @@
                 "/usr/include",
                 "/usr/local/include",
                 "/home/anand_maurya/Documents/Project/include/",
-                "/usr/include/SDL2"
+                "/usr/include/SDL2",
+                "/usr/include/json-c/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -1,7 +1,6 @@
 {
-    "lvl_name": "LEVEL0",
     "tile1": {
-        "asset": "path/to/asset",
+        "color": [100, 100, 100, 255],
         "coords_index": [
             [0, 0],
             [100, 100],
@@ -9,7 +8,7 @@
         ]
     },
     "tile2": {
-        "asset": "path/to/asset",
+        "color": [100, 255, 0, 255],
         "coords_index": [
             [3, 3],
             [5, 5]

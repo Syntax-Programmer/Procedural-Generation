@@ -44,7 +44,7 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
 static void exitGame(GameContext* pMain_context, Obj** lvl_data) {
     destroyGameContext(pMain_context);
     SDL_Quit();
-    freeLevelData(lvl_data);
+    freeLvlData(lvl_data);
 }
 
 void game() {

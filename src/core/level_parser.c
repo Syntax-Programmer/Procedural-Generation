@@ -2,7 +2,7 @@
 
 static int allocObj(Obj** lvl_data, int* pLvl_data_i, int x, int y, int w, int h, int r, int g, int b, int a);
 
-void freeLevelData(Obj** lvl_data) {
+void freeLvlData(Obj** lvl_data) {
     for (int i = 0; lvl_data[i] != NULL; i++) {
         free(lvl_data[i]);
         lvl_data[i] = NULL;
@@ -10,7 +10,7 @@ void freeLevelData(Obj** lvl_data) {
     free(lvl_data);
 }
 
-int reallocLevelData(Obj*** pLvl_data, int prev_size) {
+int reallocLvlData(Obj*** pLvl_data, int prev_size) {
     int new_size = prev_size + (prev_size / 2);
     Obj** temp = realloc(*pLvl_data, sizeof(Obj*) * (new_size + 1)); // So that we always have room for the NULL sentient value.
 
@@ -28,7 +28,7 @@ static int allocObj(Obj** lvl_data, int* pLvl_data_i, int x, int y, int w, int h
     if (!obj) {
         fprintf(stderr, "Can't malloc space for a object int the lvl data.\n");
         lvl_data[*pLvl_data_i] = NULL;
-        freeLevelData(lvl_data);
+        freeLvlData(lvl_data);
         return 0;
     }
     *obj = createObj(x, y, w, h, r, g, b, a);
@@ -59,7 +59,7 @@ Obj** parseLevel(int lvl_number) {
                 continue;
             }
             if (lvl_data_i == lvl_data_size) {
-                lvl_data_size = reallocLevelData(&lvl_data, lvl_data_size);
+                lvl_data_size = reallocLvlData(&lvl_data, lvl_data_size);
             }
             if (!allocObj(lvl_data, &lvl_data_i, i * LVL_TO_SCREEN, line_c * LVL_TO_SCREEN, LVL_TO_SCREEN,
                      LVL_TO_SCREEN, 100, 100, 100, 255)) {

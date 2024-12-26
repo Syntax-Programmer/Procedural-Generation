@@ -5,7 +5,7 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
-                "/home/anand_user/Documents/Project/include/",
+                "/home/anand_maurya/Documents/Project/include/",
                 "/usr/include/SDL2"
             ],
             "defines": [],

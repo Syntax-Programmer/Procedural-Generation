@@ -35,7 +35,7 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
         TODO: Make a game_state_handler moduele.
         */
         handleState(pPlayer, &lvl_data, mov_x_comp, mov_y_comp, &mov_x_offset, &mov_y_offset, delta_time);
-        render(pMain_context, pPlayer, lvl_data, mov_x_offset, mov_y_offset);
+        render(pMain_context, pPlayer, lvl_data);
         mov_x_comp = mov_y_comp = mov_x_offset = mov_y_offset = 0; // This is set to 0 here and not in the state handler as the graphics handler needs the offsets.
         frame_c++;
     }

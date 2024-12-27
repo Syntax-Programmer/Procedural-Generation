@@ -15,8 +15,8 @@ extern void destroyGameContext(GameContext* pTo_destroy);
 extern GameContext createGameContext(char* title, int x, int y, int w, int h, Uint32 flags);
 extern int initSDL();
 extern void quitSDL(GameContext* pMain_context);
-extern void renderObj(GameContext* pContext, Obj* pTo_render, int x_offset, int y_offset);
-extern void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data, int x_offset, int y_offset);
+extern void renderObj(GameContext* pContext, Obj* pTo_render);
+extern void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data);
 extern int handleEvents(int* pX_comp, int* pY_Comp);
 
 #endif

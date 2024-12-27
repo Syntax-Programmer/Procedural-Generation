@@ -73,3 +73,28 @@ Obj** parseLevel(int lvl_number) {
     lvl_data[lvl_data_i] = NULL;
     return lvl_data;
 }
+
+/* 
+Obj** parseLvlJson(int lvl_c) {
+    char lvl_dir_path[LVL_PATH_SIZE];
+    snprintf(lvl_dir_path, sizeof(lvl_dir_path), "levels/lvl%d", lvl_c);
+    DIR* lvl_dir = opendir(lvl_dir_path);
+    struct dirent* entry;
+
+    struct json_object* json_obj;
+
+    int lvl_data_size = LVL_MIN_COL * LVL_MIN_ROW;
+    Obj** lvl_data = malloc(sizeof(Obj*) * (lvl_data_size + 1)); // The +1 leaves room for the ending NULL sentient value if all rest are filled.
+    int line_c = 0, lvl_data_i = 0;
+
+    if (!lvl_dir) {
+        fprintf(stderr, "Can't open the level directory at the path: %s\n", lvl_dir_path);
+        return NULL;
+    }
+    while ((entry = readdir(lvl_dir))) {
+        json_obj = json_object_from_file(entry->d_name);
+        json_object_object_get_ex()
+    }
+    closedir(lvl_dir);
+}
+*/

@@ -1,3 +1,4 @@
-make all the concept of updating things sperate from sdl_handler.
+Make a render_map from the base Obj** layer from tilemap.json that has indices of all the elements to be rendered.
 
-Work on a update game state function to manage all the objects and player instead of doing them accross multiple functions.
+From the base Obj** layer generated from tilemap.json, make a seprate array called collision_map, that has all the indices of elements that can show collision.
+This improves performance.

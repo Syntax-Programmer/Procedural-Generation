@@ -12,7 +12,7 @@ void freeLvlData(Obj** lvl_data) {
 
 int reallocLvlData(Obj*** pLvl_data, int prev_size) {
     int new_size = prev_size + (prev_size / 2);
-    Obj** temp = realloc(*pLvl_data, sizeof(Obj*) * (new_size + 1)); // So that we always have room for the NULL sentient value.
+    Obj** temp = realloc(*pLvl_data, sizeof(Obj*) * (new_size + 1)); // So that we always have room for the NULL sentient value we add a +1.
 
     if (!temp) {
         fprintf(stderr, "Failed to realloc lvl data array.\n");
@@ -74,7 +74,7 @@ Obj** parseLevel(int lvl_number) {
     return lvl_data;
 }
 
-/* 
+/*
 Obj** parseLvlJson(int lvl_c) {
     char lvl_dir_path[LVL_PATH_SIZE];
     snprintf(lvl_dir_path, sizeof(lvl_dir_path), "levels/lvl%d", lvl_c);

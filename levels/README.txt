@@ -19,11 +19,7 @@ Data is to be encoded in json format only
             "properties": {
                "is_animated": 0/1, // This will mean that the asset path is the path to a sprite sheet. As these tiles are non-intractable they will only have 1 type of animation.
                 "collision": 0/1
-            },
-            "render_order": 0/1     // This shall be the draw order where the 0 is drawn first and 1 is drawn last.
+            }
         }
     }
     These tiles are assumed to be unbreakable/unmovable elements.
-    The tiles may not neccesarily be ordered according to render_order, but it is encouraged for readablility.
-    The render_order may be in order of: 0. World tile set.
-                                         1. Decorations and other stuff.

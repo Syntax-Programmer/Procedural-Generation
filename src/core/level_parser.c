@@ -1,8 +1,10 @@
 #include "level_parser.h"
 
 static int allocObj(Obj** lvl_data, int* pLvl_data_i, int x, int y, int w, int h, int r, int g, int b, int a);
+static int reallocLvlData(Obj*** pLvl_data, int prev_size);
+static Obj** parseTilemap(int lvl_number);
 
-void freeLvlData(Obj** lvl_data) {
+void freeLvlTileset(Obj** lvl_data) {
     for (int i = 0; lvl_data[i] != NULL; i++) {
         free(lvl_data[i]);
         lvl_data[i] = NULL;
@@ -10,7 +12,7 @@ void freeLvlData(Obj** lvl_data) {
     free(lvl_data);
 }
 
-int reallocLvlData(Obj*** pLvl_data, int prev_size) {
+static int reallocLvlData(Obj*** pLvl_data, int prev_size) {
     int new_size = prev_size + (prev_size / 2);
     Obj** temp = realloc(*pLvl_data, sizeof(Obj*) * (new_size + 1)); // So that we always have room for the NULL sentient value we add a +1.
 
@@ -28,7 +30,7 @@ static int allocObj(Obj** lvl_data, int* pLvl_data_i, int x, int y, int w, int h
     if (!obj) {
         fprintf(stderr, "Can't malloc space for a object int the lvl data.\n");
         lvl_data[*pLvl_data_i] = NULL;
-        freeLvlData(lvl_data);
+        freeLvlTileset(lvl_data);
         return 0;
     }
     *obj = createObj(x, y, w, h, r, g, b, a);
@@ -36,65 +38,80 @@ static int allocObj(Obj** lvl_data, int* pLvl_data_i, int x, int y, int w, int h
     return 1;
 }
 
-Obj** parseLevel(int lvl_number) {
-    char lvl_path[LVL_PATH_SIZE], buff[BUFF_SIZE]; 
-    snprintf(lvl_path, sizeof(lvl_path), "levels/lvl%d.txt", lvl_number);
-    FILE* lvl_file = fopen(lvl_path, "r");
-    int lvl_data_size = LVL_MIN_COL * LVL_MIN_ROW;
-    Obj** lvl_data = malloc(sizeof(Obj*) * (lvl_data_size + 1)); // The +1 leaves room for the ending NULL sentient value if all rest are filled.
-    int line_c = 0, lvl_data_i = 0;
+static Obj** parseTilemap(int lvl_number) {
+    char lvl_dir_path[LVL_PATH_SIZE];
+    snprintf(lvl_dir_path, sizeof(lvl_dir_path), "levels/lvl%d/tilemap.json", lvl_number);
+    struct json_object *tilemap_obj = json_object_from_file(lvl_dir_path);
 
-    if (!lvl_file) {
-        fprintf(stderr, "Can't open the level file at the path: %s\n", lvl_path);
+    if (!tilemap_obj) {
+        fprintf(stderr, "Can't open or parse the tilemap file at the path: %s\n", lvl_dir_path);
         return NULL;
     }
+
+    int lvl_data_size = MIN_TILE_SIZE;
+    Obj** lvl_data = malloc(sizeof(Obj*) * (lvl_data_size + 1)); // +1 for NULL sentinel
+
     if (!lvl_data) {
-        fprintf(stderr, "Can't malloc space for the lvl_data of the level file at the path: %s\n", lvl_path);
-        fclose(lvl_file);
+        fprintf(stderr, "Can't malloc space for the lvl data array.\n");
+        json_object_put(tilemap_obj);
         return NULL;
     }
-    while (fgets(buff, sizeof(buff), lvl_file)) {
-        for (int i = 0; buff[i] != '\n' && buff[i] != '\0'; i++) {
-            if (buff[i] == ' ') {
-                continue;
-            }
+
+    int lvl_data_i = 0;
+
+    json_object_object_foreach(tilemap_obj, key, val) {
+        struct json_object *color_obj = json_object_object_get(val, "color");
+        struct json_object *tile_size_obj = json_object_object_get(val, "tile_size");
+        struct json_object *pos_matrix_obj = json_object_object_get(val, "pos_matrix");
+        struct json_object *properties_obj = json_object_object_get(val, "properties");
+
+        int r = json_object_get_int(json_object_array_get_idx(color_obj, 0));
+        int g = json_object_get_int(json_object_array_get_idx(color_obj, 1));
+        int b = json_object_get_int(json_object_array_get_idx(color_obj, 2));
+        int a = json_object_get_int(json_object_array_get_idx(color_obj, 3));
+
+        int w = json_object_get_int(json_object_array_get_idx(tile_size_obj, 0));
+        int h = json_object_get_int(json_object_array_get_idx(tile_size_obj, 1));
+
+        for (int i = 0; i < json_object_array_length(pos_matrix_obj); i++) {
+            struct json_object *pos = json_object_array_get_idx(pos_matrix_obj, i);
+            int x = json_object_get_int(json_object_array_get_idx(pos, 0));
+            int y = json_object_get_int(json_object_array_get_idx(pos, 1));
+
             if (lvl_data_i == lvl_data_size) {
                 lvl_data_size = reallocLvlData(&lvl_data, lvl_data_size);
             }
-            if (!allocObj(lvl_data, &lvl_data_i, i * LVL_TO_SCREEN, line_c * LVL_TO_SCREEN, LVL_TO_SCREEN,
-                     LVL_TO_SCREEN, 100, 100, 100, 255)) {
-                fclose(lvl_file);
+
+            if (!allocObj(lvl_data, &lvl_data_i, x, y, w, h, r, g, b, a)) {
+                json_object_put(tilemap_obj);
                 return NULL;
             }
         }
-        line_c++;
     }
-    fclose(lvl_file);
     lvl_data[lvl_data_i] = NULL;
+    json_object_put(tilemap_obj);
     return lvl_data;
 }
 
-/*
-Obj** parseLvlJson(int lvl_c) {
+void parseLvl(int lvl_number, Obj*** pLvl_tileset) {
     char lvl_dir_path[LVL_PATH_SIZE];
-    snprintf(lvl_dir_path, sizeof(lvl_dir_path), "levels/lvl%d", lvl_c);
+    snprintf(lvl_dir_path, sizeof(lvl_dir_path), "levels/lvl%d", lvl_number);
     DIR* lvl_dir = opendir(lvl_dir_path);
     struct dirent* entry;
 
-    struct json_object* json_obj;
-
-    int lvl_data_size = LVL_MIN_COL * LVL_MIN_ROW;
-    Obj** lvl_data = malloc(sizeof(Obj*) * (lvl_data_size + 1)); // The +1 leaves room for the ending NULL sentient value if all rest are filled.
-    int line_c = 0, lvl_data_i = 0;
-
     if (!lvl_dir) {
         fprintf(stderr, "Can't open the level directory at the path: %s\n", lvl_dir_path);
-        return NULL;
+        closedir(lvl_dir);
+        *pLvl_tileset = NULL; //Note other data that came here to be initialized shall be nullified here.
+        return;
     }
     while ((entry = readdir(lvl_dir))) {
-        json_obj = json_object_from_file(entry->d_name);
-        json_object_object_get_ex()
+        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
+            continue;
+        }
+        if (!strcmp(entry->d_name, "tilemap.json")) {
+            *pLvl_tileset = parseTilemap(lvl_number);
+        }
     }
     closedir(lvl_dir);
 }
-*/

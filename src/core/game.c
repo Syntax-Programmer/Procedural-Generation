@@ -12,7 +12,7 @@ static int initGame(GameContext* pMain_context, Player* pPlayer, Obj*** pLvl_dat
                                       SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (PLAYER_WIDTH / 2), (SCREEN_HEIGHT / 2) - (PLAYER_HEIGHT / 2), // Ensures that the player is centered.
                             PLAYER_WIDTH, PLAYER_HEIGHT, 255, 0, 0, 255, 100, 200);
-    *pLvl_data = parseLevel(0);
+    parseLvl(0, pLvl_data);
     if (!pMain_context->win || !(*pLvl_data)) {
         status = 0;
     }
@@ -44,7 +44,7 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
 static void exitGame(GameContext* pMain_context, Obj** lvl_data) {
     destroyGameContext(pMain_context);
     SDL_Quit();
-    freeLvlData(lvl_data);
+    freeLvlTileset(lvl_data);
 }
 
 void game() {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CC=gcc
-CFLAGS="-Wall -Wextra -Iinclude -I/usr/include/SDL2 -Ofast -lSDL2"
+CFLAGS="-Wall -Wextra -Iinclude -I/usr/include/SDL2 /usr/include/json-c/json.h  -Ofast -lSDL2 -ljson-c -lm"
 
 SRC_DIR="src"
 BUILD_DIR="build"

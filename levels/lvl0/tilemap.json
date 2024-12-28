@@ -1,18 +1,32 @@
 {
-    "tile_name": {
-        "asset_path": "path/to/asset/relative/to/build/Game",
-        "tile_size": [25, 25],
+    "SomeTile": {
+        "color": [100, 100, 100, 255],
+        "tile_size": [32, 32],
         "pos_matrix": [
             [0, 0],
-            [1, 1],
-            [2, 2],
-            [5, 6],
-            [1, 2]
+            [32, 32],
+            [64, 64],
+            [96, 96],
+            [160, 182]
         ],
         "properties": {
-           "is_animated": 0,
+          "is_animated": 0,
             "collision": 1
-        },
-        "render_order": 0
+        }
+    },
+    "SomeTile2": {
+        "color": [100, 0, 0, 255],
+        "tile_size": [51, 51],
+        "pos_matrix": [
+            [0, 42],
+            [32, 64],
+            [64, 96],
+            [96, 128],
+            [160, 182]
+        ],
+        "properties": {
+          "is_animated": 0,
+            "collision": 1
+        }
     }
 }

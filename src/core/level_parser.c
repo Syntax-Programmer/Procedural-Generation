@@ -41,7 +41,7 @@ static int allocObj(Obj** lvl_data, int* pLvl_data_i, int x, int y, int w, int h
 static Obj** parseTilemap(int lvl_number) {
     char lvl_dir_path[LVL_PATH_SIZE];
     snprintf(lvl_dir_path, sizeof(lvl_dir_path), "levels/lvl%d/tilemap.json", lvl_number);
-    struct json_object *tilemap_obj = json_object_from_file(lvl_dir_path);
+    struct json_object *tilemap_obj = json_object_from_file(lvl_dir_path), *color_obj, *tile_size_obj, *pos_matrix_obj, *properties_obj, *pos;
 
     if (!tilemap_obj) {
         fprintf(stderr, "Can't open or parse the tilemap file at the path: %s\n", lvl_dir_path);
@@ -57,31 +57,27 @@ static Obj** parseTilemap(int lvl_number) {
         return NULL;
     }
 
-    int lvl_data_i = 0;
+    int lvl_data_i = 0, r, g, b, a, w, h, x, y;
 
     json_object_object_foreach(tilemap_obj, key, val) {
-        struct json_object *color_obj = json_object_object_get(val, "color");
-        struct json_object *tile_size_obj = json_object_object_get(val, "tile_size");
-        struct json_object *pos_matrix_obj = json_object_object_get(val, "pos_matrix");
-        struct json_object *properties_obj = json_object_object_get(val, "properties");
-
-        int r = json_object_get_int(json_object_array_get_idx(color_obj, 0));
-        int g = json_object_get_int(json_object_array_get_idx(color_obj, 1));
-        int b = json_object_get_int(json_object_array_get_idx(color_obj, 2));
-        int a = json_object_get_int(json_object_array_get_idx(color_obj, 3));
-
-        int w = json_object_get_int(json_object_array_get_idx(tile_size_obj, 0));
-        int h = json_object_get_int(json_object_array_get_idx(tile_size_obj, 1));
-
+        color_obj = json_object_object_get(val, "color");
+        tile_size_obj = json_object_object_get(val, "tile_size");
+        pos_matrix_obj = json_object_object_get(val, "pos_matrix");
+        properties_obj = json_object_object_get(val, "properties");
+        r = json_object_get_int(json_object_array_get_idx(color_obj, 0));
+        g = json_object_get_int(json_object_array_get_idx(color_obj, 1));
+        b = json_object_get_int(json_object_array_get_idx(color_obj, 2));
+        a = json_object_get_int(json_object_array_get_idx(color_obj, 3));
+        w = json_object_get_int(json_object_array_get_idx(tile_size_obj, 0));
+        h = json_object_get_int(json_object_array_get_idx(tile_size_obj, 1));
         for (int i = 0; i < json_object_array_length(pos_matrix_obj); i++) {
-            struct json_object *pos = json_object_array_get_idx(pos_matrix_obj, i);
-            int x = json_object_get_int(json_object_array_get_idx(pos, 0));
-            int y = json_object_get_int(json_object_array_get_idx(pos, 1));
+            pos = json_object_array_get_idx(pos_matrix_obj, i);
+            x = json_object_get_int(json_object_array_get_idx(pos, 0));
+            y = json_object_get_int(json_object_array_get_idx(pos, 1));
 
             if (lvl_data_i == lvl_data_size) {
                 lvl_data_size = reallocLvlData(&lvl_data, lvl_data_size);
             }
-
             if (!allocObj(lvl_data, &lvl_data_i, x, y, w, h, r, g, b, a)) {
                 json_object_put(tilemap_obj);
                 return NULL;

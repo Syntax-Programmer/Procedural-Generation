@@ -1,3 +1,5 @@
+Make use of all the info in the tilemap.json
+
 Make a render_map from the base Obj** layer from tilemap.json that has indices of all the elements to be rendered.
 
 From the base Obj** layer generated from tilemap.json, make a seprate array called collision_map, that has all the indices of elements that can show collision.

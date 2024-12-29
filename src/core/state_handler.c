@@ -20,7 +20,8 @@ extern void handleState(Player* pPlayer, Obj*** pLvl_data, int x_comp, int y_com
         if (!isRectInFOV(&((*pLvl_data)[i]->rect))) {
             continue;
         }
-        if (AABBCollision(&(pPlayer->obj.rect), &((*pLvl_data)[i]->rect))) {
+        if (pPlayer->obj.can_collide && (*pLvl_data)[i]->can_collide && // Checking if the player and the object can collide before doing the collision check.
+            AABBCollision(&(pPlayer->obj.rect), &((*pLvl_data)[i]->rect))) {
             colliding_obj_i = i + 1;
             break;
         }

@@ -26,7 +26,7 @@ void setStatCurr(Stat* pStat, int change) {
     pStat->curr = new_curr;
 }
 
-Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int can_collide) {
     Obj obj;
 
     obj.rect = createRect(x, y, w, h);
@@ -34,5 +34,6 @@ Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
     obj.g = g;
     obj.b = b;
     obj.a = a;
+    obj.can_collide = can_collide;
     return obj;
 }

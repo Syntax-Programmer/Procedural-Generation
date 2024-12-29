@@ -11,7 +11,7 @@ static int initGame(GameContext* pMain_context, Player* pPlayer, Obj*** pLvl_dat
     *pMain_context = createGameContext("MyGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                       SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (PLAYER_WIDTH / 2), (SCREEN_HEIGHT / 2) - (PLAYER_HEIGHT / 2), // Ensures that the player is centered.
-                            PLAYER_WIDTH, PLAYER_HEIGHT, 255, 0, 0, 255, 100, 200);
+                            PLAYER_WIDTH, PLAYER_HEIGHT, 255, 0, 0, 255, 1, 100, 200);
     parseLvl(0, pLvl_data);
     if (!pMain_context->win || !(*pLvl_data)) {
         status = 0;

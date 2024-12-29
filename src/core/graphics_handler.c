@@ -55,11 +55,10 @@ void renderObj(GameContext* pContext, Obj* pTo_render) {
 void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data) {
     SDL_SetRenderDrawColor(pContext->renderer, 255, 255, 255, 255);
     SDL_RenderClear(pContext->renderer);
-    SDL_SetRenderDrawColor(pContext->renderer, pPlayer->obj.r, pPlayer->obj.g, pPlayer->obj.b, pPlayer->obj.a);
-    SDL_RenderFillRect(pContext->renderer, &(pPlayer->obj.rect));
     for (int i = 0; lvl_data[i]; i++) {
         renderObj(pContext, lvl_data[i]);
     }
+    renderObj(pContext, &(pPlayer->obj));
     SDL_RenderPresent(pContext->renderer);
 }
 

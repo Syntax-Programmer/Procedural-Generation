@@ -74,4 +74,7 @@
     "editor.copyWithSyntaxHighlighting": false,
     "editor.tabCompletion": "on",
     "C_Cpp.default.compilerPath": "C:\\MinGW\\bin\\gcc.exe",
+    "files.associations": {
+        "map_generator.h": "c"
+    },
 }

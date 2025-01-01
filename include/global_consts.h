@@ -7,8 +7,14 @@
 #define PLAYER_WIDTH 32
 #define PLAYER_HEIGHT 32
 
+#define MAP_WIDTH (SCREEN_WIDTH * 20)
+#define MAP_HEIGHT (SCREEN_HEIGHT * 20)
+
 #define MIN_TILE_SIZE 128
 #define TILE_SQUARE_SIDE 25
 #define LVL_PATH_SIZE 32
+
+#define PERLIN_NOISE_WRAP_LIMIT 255
+#define FBM_OCTAVES 8
 
 #endif

@@ -1,10 +1,10 @@
 #include "player.h"
 
-Player createPlayer(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int can_collide,
+Player createPlayer(int x, int y, int w, int h, Uint32 color_hex, int can_collide,
                            Uint8 max_health, int max_vel) {
     Player player;
 
-    player.obj = createObj(x, y, w, h, r, g, b, a, can_collide);
+    player.obj = createObj(x, y, w, h, color_hex, can_collide);
     player.health = createStat(max_health);
     player.vel = max_vel;
     return player;

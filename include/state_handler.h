@@ -6,7 +6,7 @@
 #include "physics.h"
 #include "object.h"
 
-extern void handleState(Player* pPlayer, Obj*** pLvl_data, int x_comp, int y_comp,
+extern void handleState(Player* pPlayer, int x_comp, int y_comp,
                         int* pX_offset, int* pY_offset, double delta_time);
 
 #endif

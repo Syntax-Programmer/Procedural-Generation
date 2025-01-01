@@ -9,13 +9,15 @@ typedef struct Stat {
 } Stat;
 typedef struct Obj {
     SDL_Rect rect;
-    Uint8 r, g, b, a;
+    Uint32 color_hex;
     int can_collide;
 } Obj;
 
 extern Stat createStat(Uint8 max);
 extern void setStatMax(Stat* pStat, Uint8 max);
 extern void setStatCurr(Stat* pStat, int change);
-extern Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int can_collide);
+extern Uint32 encodeColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+extern void decodeColor(Uint32 color_hex, Uint8* pR, Uint8* pG, Uint8* pB, Uint8* pA);
+extern Obj createObj(int x, int y, int w, int h, Uint32 color_hex, int can_collide);
 
 #endif

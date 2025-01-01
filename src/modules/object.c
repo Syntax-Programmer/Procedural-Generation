@@ -26,14 +26,23 @@ void setStatCurr(Stat* pStat, int change) {
     pStat->curr = new_curr;
 }
 
-Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a, int can_collide) {
+Uint32 encodeColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+    return (r << 24) | (g << 16) | (b << 8) | a;
+}
+
+void decodeColor(Uint32 color_hex, Uint8* pR, Uint8* pG, Uint8* pB, Uint8* pA) {
+    *pR = (color_hex >> 24) & 0xFF;
+    *pG = (color_hex >> 16) & 0xFF;
+    *pB = (color_hex >> 8) & 0xFF;
+    *pA = color_hex & 0xFF;
+}
+
+
+Obj createObj(int x, int y, int w, int h, Uint32 color_hex, int can_collide) {
     Obj obj;
 
     obj.rect = createRect(x, y, w, h);
-    obj.r = r;
-    obj.g = g;
-    obj.b = b;
-    obj.a = a;
+    obj.color_hex = color_hex;
     obj.can_collide = can_collide;
     return obj;
 }

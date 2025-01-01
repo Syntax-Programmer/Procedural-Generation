@@ -16,7 +16,7 @@ extern GameContext createGameContext(char* title, int x, int y, int w, int h, Ui
 extern int initSDL();
 extern void quitSDL(GameContext* pMain_context);
 extern void renderObj(GameContext* pContext, Obj* pTo_render);
-extern void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data);
+extern void render(GameContext* pContext, Player* pPlayer, Obj** terrain_map);
 extern int handleEvents(int* pX_comp, int* pY_Comp);
 
 #endif

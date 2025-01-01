@@ -44,19 +44,22 @@ void quitSDL(GameContext* pMain_context) {
 }
 
 void renderObj(GameContext* pContext, Obj* pTo_render) {
+    Uint8 r, g, b, a;
+
+    decodeColor(pTo_render->color_hex, &r, &g, &b, &a);
     // Tp ensure rects only in fov get rendered.
     if (!isRectInFOV(&(pTo_render->rect))) {
         return;
     }
-    SDL_SetRenderDrawColor(pContext->renderer, pTo_render->r, pTo_render->g, pTo_render->b, pTo_render->a);
+    SDL_SetRenderDrawColor(pContext->renderer, r, g, b, a);
     SDL_RenderFillRect(pContext->renderer, &(pTo_render->rect));
 }
 
-void render(GameContext* pContext, Player* pPlayer, Obj** lvl_data) {
+void render(GameContext* pContext, Player* pPlayer, Obj** terrain_map) {
     SDL_SetRenderDrawColor(pContext->renderer, 255, 255, 255, 255);
     SDL_RenderClear(pContext->renderer);
-    for (int i = 0; lvl_data[i]; i++) {
-        renderObj(pContext, lvl_data[i]);
+    for (int i = 0; terrain_map[i]; i++) {
+        renderObj(pContext, terrain_map[i]);
     }
     renderObj(pContext, &(pPlayer->obj));
     SDL_RenderPresent(pContext->renderer);

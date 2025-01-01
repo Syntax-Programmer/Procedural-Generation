@@ -1,12 +1,12 @@
 #!/bin/bash
 
 CC=gcc
-CFLAGS="-Wall -Wextra -Iinclude -I/usr/include/SDL2 /usr/include/json-c/json.h  -Ofast -lSDL2 -ljson-c -lm"
+CFLAGS="-fsanitize=address -g -Wall -Wextra -Iinclude -I/usr/include/SDL2 /usr/include/json-c/json.h  -Ofast -lSDL2 -ljson-c -lm"
 
 SRC_DIR="src"
 BUILD_DIR="build"
 
-CORE_SRC="${SRC_DIR}/core/game.c ${SRC_DIR}/core/level_parser.c
+CORE_SRC="${SRC_DIR}/core/game.c ${SRC_DIR}/core/map_generator.c
           ${SRC_DIR}/core/graphics_handler.c ${SRC_DIR}/core/state_handler.c"
 ENGINE_SRC="${SRC_DIR}/modules/object.c ${SRC_DIR}/modules/physics.c ${SRC_DIR}/modules/player.c"
 MAIN_SRC="${SRC_DIR}/main.c"

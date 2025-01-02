@@ -53,11 +53,3 @@ int isRectInFOV(const SDL_Rect* pRect) {
     }
     return 1;
 }
-
-Vector2D createVector2D(float x, float y) {
-    return (Vector2D){x, y};
-}
-
-int vectorDotProduct(Vector2D* pVec1, Vector2D* pVec2) {
-    return (pVec1->x * pVec2->x) + (pVec1->y * pVec2->y);
-}

@@ -8,8 +8,8 @@
     "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
     "debug.terminal.clearBeforeReusing": true,
     "editor.fontLigatures": true,
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": false,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
     "powermode.combo.location": "off",
     "powermode.combo.counterEnabled": "hide",
     "powermode.shake.enabled": false,
@@ -20,7 +20,7 @@
     "cSpell.userWords": [
         "Anand"
     ],
-    "editor.formatOnType": false,
+    "editor.formatOnType": true,
     "workbench.editorAssociations": {
         "*.pyc": "default"
     },
@@ -49,7 +49,7 @@
     "editor.minimap.autohide": true,
     "editor.minimap.renderCharacters": false,
     "editor.cursorBlinking": "smooth",
-    "editor.defaultFormatter": null,
+    "editor.defaultFormatter": "ms-vscode.cpptools",
     "workbench.activityBar.location": "top",
     "editor.fontSize": 12,
     "editor.wordWrap": "on",

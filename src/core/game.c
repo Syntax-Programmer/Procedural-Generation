@@ -1,32 +1,37 @@
 #include "game.h"
 
-static int initGame(GameContext* pMain_context, Player* pPlayer, Obj*** pTerrainMap);
-static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer, Obj** terrain_map);
-static void exitGame(GameContext* pMain_context, Obj** terrain_map);
+static int initGame(GameContext *pMain_context, Player *pPlayer, Obj ***pTerrainMap);
+static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer, Obj **terrain_map);
+static void exitGame(GameContext *pMain_context, Obj **terrain_map);
 
-static int initGame(GameContext* pMain_context, Player* pPlayer, Obj*** pTerrainMap) {
+static int initGame(GameContext *pMain_context, Player *pPlayer, Obj ***pTerrainMap)
+{
     int status;
 
     status = initSDL();
     *pMain_context = createGameContext("MyGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                      SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
+                                       SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (PLAYER_WIDTH / 2), (SCREEN_HEIGHT / 2) - (PLAYER_HEIGHT / 2), // Ensures that the player is centered.
                             PLAYER_WIDTH, PLAYER_HEIGHT, 0xff00ffff, 1, 100, 200);
     *pTerrainMap = generateTerrainMap();
-    if (!pMain_context->win || !(*pTerrainMap)) {
+    if (!pMain_context->win || !(*pTerrainMap))
+    {
         status = 0;
     }
     return status;
 }
 
-static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer, Obj** terrain_map) {
+static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer, Obj **terrain_map)
+{
     time_t start = time(NULL);
     double delta_time = 1.0 / 60.0;
     int frame_c = 0, mov_x_comp = 0, mov_y_comp = 0, mov_x_offset = 0, mov_y_offset = 0;
 
-    while (is_running) {
+    while (is_running)
+    {
         getDeltaTime(&start, &delta_time, &frame_c);
-        if (!handleEvents(&mov_x_comp, &mov_y_comp)) {
+        if (!handleEvents(&mov_x_comp, &mov_y_comp))
+        {
             is_running = 0;
             break;
         }
@@ -41,16 +46,18 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
     }
 }
 
-static void exitGame(GameContext* pMain_context, Obj** terrain_map) {
+static void exitGame(GameContext *pMain_context, Obj **terrain_map)
+{
     destroyGameContext(pMain_context);
     SDL_Quit();
     freeTerrainMap(terrain_map);
 }
 
-void game() {
+void game()
+{
     GameContext main_context;
     Player player;
-    Obj** terrain_map = NULL;
+    Obj **terrain_map = NULL;
     int is_running = initGame(&main_context, &player, &terrain_map);
 
     gameloop(is_running, &main_context, &player, terrain_map);

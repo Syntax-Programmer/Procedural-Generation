@@ -1,28 +1,34 @@
 #include "graphics_handler.h"
 
-static void handleKeyboard(int* pX_comp, int* pY_comp);
+static void handleKeyboard(int *pX_comp, int *pY_comp);
 
-void destroyGameContext(GameContext* pTo_destroy) {
-    if (pTo_destroy->renderer) {
+void destroyGameContext(GameContext *pTo_destroy)
+{
+    if (pTo_destroy->renderer)
+    {
         SDL_DestroyRenderer(pTo_destroy->renderer);
         pTo_destroy->renderer = NULL;
     }
-    if (pTo_destroy->win) {
+    if (pTo_destroy->win)
+    {
         SDL_DestroyWindow(pTo_destroy->win);
         pTo_destroy->win = NULL;
     }
 }
 
-GameContext createGameContext(char* title, int x, int y, int w, int h, Uint32 flags) {
+GameContext createGameContext(char *title, int x, int y, int w, int h, Uint32 flags)
+{
     GameContext context = {NULL, NULL};
 
     context.win = SDL_CreateWindow(title, x, y, w, h, flags);
-    if (!context.win) {
+    if (!context.win)
+    {
         fprintf(stderr, "ERROR: Couldn't create the win for the GameContext with title: %s\n", title);
         return context;
     }
     context.renderer = SDL_CreateRenderer(context.win, -1, SDL_RENDERER_PRESENTVSYNC);
-    if (!context.renderer) {
+    if (!context.renderer)
+    {
         fprintf(stderr, "ERROR: Couldn't create the renderer for the GameContext with title: %s\n", title);
         destroyGameContext(&context);
         return context;
@@ -30,60 +36,78 @@ GameContext createGameContext(char* title, int x, int y, int w, int h, Uint32 fl
     return context;
 }
 
-int initSDL() {
-    if (SDL_Init(SDL_INIT_EVERYTHING)) {
+int initSDL()
+{
+    if (SDL_Init(SDL_INIT_EVERYTHING))
+    {
         fprintf(stderr, "ERROR: Can't initialize SDL.\n");
         return 0;
     }
     return 1;
 }
 
-void quitSDL(GameContext* pMain_context) {
+void quitSDL(GameContext *pMain_context)
+{
     destroyGameContext(pMain_context);
     SDL_Quit();
 }
 
-void renderObj(GameContext* pContext, Obj* pTo_render) {
+void renderObj(GameContext *pContext, Obj *pTo_render)
+{
     Uint8 r, g, b, a;
 
     decodeColor(pTo_render->color_hex, &r, &g, &b, &a);
     // Tp ensure rects only in fov get rendered.
-    if (!isRectInFOV(&(pTo_render->rect))) {
+    if (!isRectInFOV(&(pTo_render->rect)))
+    {
         return;
     }
     SDL_SetRenderDrawColor(pContext->renderer, r, g, b, a);
     SDL_RenderFillRect(pContext->renderer, &(pTo_render->rect));
 }
 
-void render(GameContext* pContext, Player* pPlayer, Obj** terrain_map) {
+void render(GameContext *pContext, Player *pPlayer, Obj **terrain_map)
+{
     SDL_SetRenderDrawColor(pContext->renderer, 255, 255, 255, 255);
     SDL_RenderClear(pContext->renderer);
-    for (int i = 0; terrain_map[i]; i++) {
+    for (int i = 0; terrain_map[i]; i++)
+    {
         renderObj(pContext, terrain_map[i]);
     }
     renderObj(pContext, &(pPlayer->obj));
     SDL_RenderPresent(pContext->renderer);
 }
 
-static void handleKeyboard(int* pX_comp, int* pY_comp) {
-    const Uint8* state = SDL_GetKeyboardState(NULL);
+static void handleKeyboard(int *pX_comp, int *pY_comp)
+{
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
 
-    if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) {
+    if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP])
+    {
         *pY_comp -= 1;
-    } if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
+    }
+    if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
+    {
         *pX_comp -= 1;
-    } if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) {
+    }
+    if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN])
+    {
         *pY_comp += 1;
-    } if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
+    }
+    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])
+    {
         *pX_comp += 1;
     }
 }
 
-int handleEvents(int* pX_comp, int* pY_Comp) {
+int handleEvents(int *pX_comp, int *pY_Comp)
+{
     SDL_Event event;
 
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
+    while (SDL_PollEvent(&event))
+    {
+        if (event.type == SDL_QUIT)
+        {
             return 0;
         }
     }

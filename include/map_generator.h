@@ -8,8 +8,7 @@
 #include "physics.h"
 #include "object.h"
 
-extern void freeTerrainMap(Obj** lvl_data);
-Obj** generateTerrainMap();
-
+extern void freeTerrainMap(Obj **to_free);
+extern Obj **generateTerrainMap();
 
 #endif

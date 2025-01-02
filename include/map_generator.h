@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 #include "global_consts.h"
 #include "physics.h"
 #include "object.h"

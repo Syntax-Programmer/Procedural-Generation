@@ -8,12 +8,11 @@ static void attemptRollbackMove(Obj** lvl_data, int rollback_limit, int x_offset
     }
 }
 
-extern void handleState(Player* pPlayer, int x_comp, int y_comp,
+extern void handleState(Player* pPlayer, Obj*** pTerrain_map, int x_comp, int y_comp,
                         int* pX_offset, int* pY_offset, double delta_time) {
     int colliding_obj_i = 0;
 
     getWorldMovOffset(pPlayer->vel, delta_time, x_comp, y_comp, pX_offset, pY_offset);
-    /*
     for (int i = 0; (*pTerrain_map)[i]; i++) {
         setRectPos(&((*pTerrain_map)[i]->rect), (*pTerrain_map)[i]->rect.x - (*pX_offset),
                    (*pTerrain_map)[i]->rect.y - (*pY_offset)); // Moving the world relative to the player.
@@ -30,5 +29,4 @@ extern void handleState(Player* pPlayer, int x_comp, int y_comp,
     //We attempt rolling back the move if colliding_obj_i != 0, because this means that somewhere collision
     //happend and we have to move back all the rects that have already been moved.*
     attemptRollbackMove(*pTerrain_map, colliding_obj_i, *pX_offset, *pY_offset);
-    */
 }

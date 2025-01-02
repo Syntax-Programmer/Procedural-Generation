@@ -12,121 +12,90 @@ static float fade(float t);
 static float lerp(float t, float a1, float a2);
 static void shufflePTable(int* pP_table);
 static int* initPTable();
-static float perlinNoise(float x, float y, const int *pP_table);
+static float perlinNoise(float x, float y, float freq, int depth);
 static float FractalBrownainNoise(int x, int y, int octaves, const int* pP_table);
 static int generate_pixel_colors(Uint32 pixel_colors[MAP_HEIGHT][MAP_WIDTH]);
 static int allocObj(Obj** terrain_map, int* pTerrain_map_i, int x, int y, int w,
                     int h, Uint32 color_hex, int can_collide);
 
-static Vector2D getConstVector(int v) {
-    int x = v % 3;
 
-    switch (x) {
-        case 0:
-            return createVector2D(1, 1);
-            break;
-        case 1:
-            return createVector2D(1, -1);
-            break;
-        case 2:
-            return createVector2D(-1, 1);
-            break;
-        default:
-            return createVector2D(-1, -1);
-            break;
+static int hash[] = {208,34,231,213,32,248,233,56,161,78,24,140,71,48,140,254,245,255,247,247,40,
+                     185,248,251,245,28,124,204,204,76,36,1,107,28,234,163,202,224,245,128,167,204,
+                     9,92,217,54,239,174,173,102,193,189,190,121,100,108,167,44,43,77,180,204,8,81,
+                     70,223,11,38,24,254,210,210,177,32,81,195,243,125,8,169,112,32,97,53,195,13,
+                     203,9,47,104,125,117,114,124,165,203,181,235,193,206,70,180,174,0,167,181,41,
+                     164,30,116,127,198,245,146,87,224,149,206,57,4,192,210,65,210,129,240,178,105,
+                     228,108,245,148,140,40,35,195,38,58,65,207,215,253,65,85,208,76,62,3,237,55,89,
+                     232,50,217,64,244,157,199,121,252,90,17,212,203,149,152,140,187,234,177,73,174,
+                     193,100,192,143,97,53,145,135,19,103,13,90,135,151,199,91,239,247,33,39,145,
+                     101,120,99,3,186,86,99,41,237,203,111,79,220,135,158,42,30,154,120,67,87,167,
+                     135,176,183,191,253,115,184,21,233,58,129,233,142,39,128,211,118,137,139,255,
+                     114,20,218,113,154,27,127,246,250,1,8,198,250,209,92,222,173,21,88,102,219};
+
+int noise2(int x, int y)
+{
+    int tmp = hash[(y + time(NULL)) % 256];
+    return hash[(tmp + x) % 256];
+}
+
+float lin_inter(float x, float y, float s)
+{
+    return x + s * (y-x);
+}
+
+float smooth_inter(float x, float y, float s)
+{
+    return lin_inter(x, y, s * s * (3-2*s));
+}
+
+float noise2d(float x, float y)
+{
+    int x_int = x;
+    int y_int = y;
+    float x_frac = x - x_int;
+    float y_frac = y - y_int;
+    int s = noise2(x_int, y_int);
+    int t = noise2(x_int+1, y_int);
+    int u = noise2(x_int, y_int+1);
+    int v = noise2(x_int+1, y_int+1);
+    float low = smooth_inter(s, t, x_frac);
+    float high = smooth_inter(u, v, x_frac);
+    return smooth_inter(low, high, y_frac);
+}
+
+
+
+static float perlinNoise(float x, float y, float freq, int depth) {
+    float xa = x*freq;
+    float ya = y*freq;
+    float amp = 1.0;
+    float fin = 0;
+    float div = 0.0;
+
+    int i;
+    for(i=0; i<depth; i++)
+    {
+        div += 256 * amp;
+        fin += noise2d(xa, ya) * amp;
+        amp /= 2;
+        xa *= 2;
+        ya *= 2;
     }
-}
 
-static void getPTableValues(int* pVtr, int* pVtl, int* pVbr, int* pVbl, const int* pP_table, int X, int Y) {
-    *pVtr = pP_table[pP_table[X + 1] + Y + 1];
-    *pVtl = pP_table[pP_table[X] + Y + 1];
-    *pVbr = pP_table[pP_table[X + 1] + Y];
-    *pVbl = pP_table[pP_table[X] + Y];
-}
-
-static float fade(float t) {
-    return ((6*t - 15)*t + 10)*t*t*t;
-}
-
-static float lerp(float t, float a1, float a2) {
-    return a1 + t * (a2 - a1);
-}
-
-static void shufflePTable(int* pP_table) {
-    int index, temp;
-
-    for (int i = PERLIN_NOISE_WRAP_LIMIT; i > 0; i--) {
-        index = rand() % i;
-        temp = pP_table[i];
-        pP_table[i] = pP_table[index];
-        pP_table[index] = temp;
-    }
-}
-
-static int* initPTable() {
-    int* pP_table = malloc((PERLIN_NOISE_WRAP_LIMIT + 1) * 2 * sizeof(int));
-
-    if (!pP_table) {
-        fprintf(stderr, "Failed to allocate memory for permutation table\n");
-        return NULL;
-    }
-    for (int i = 0; i <= PERLIN_NOISE_WRAP_LIMIT; i++) {
-        pP_table[i] = i;
-    }
-    shufflePTable(pP_table);
-    for (int i = 0; i <= PERLIN_NOISE_WRAP_LIMIT; i++) {
-        pP_table[i + PERLIN_NOISE_WRAP_LIMIT + 1] = pP_table[i];
-    }
-    return pP_table;
-}
-
-
-static float perlinNoise(float x, float y, const int *pP_table) {
-    int X = (int)floor(x) & (PERLIN_NOISE_WRAP_LIMIT + 1), Y = (int)floor(y) & (PERLIN_NOISE_WRAP_LIMIT + 1);
-    float xf = x - floor(x), yf = y - floor(y);
-    // To perform non-lineal interpolation.
-    float u = fade(xf), v = fade(yf);
-
-    Vector2D tr = createVector2D(xf - 1, yf - 1), tl = createVector2D(xf, yf - 1),
-             br = createVector2D(xf - 1, yf), bl = createVector2D(xf, yf); // top right, top left, bottom right, bottom left
-
-    int vtr, vtl, vbr, vbl;
-    getPTableValues(&vtr, &vtl, &vbr, &vbl, pP_table, X, Y);
-    Vector2D ctr = getConstVector(vtr), ctl = getConstVector(vtl),
-             cbr = getConstVector(vbr), cbl = getConstVector(vbl); // constant tr, constant tl, constant br, constant bl
-
-    float dtr = vectorDotProduct(&tr, &ctr), dtl = vectorDotProduct(&tl, &ctl),
-        dbr = vectorDotProduct(&br, &cbr), dbl = vectorDotProduct(&bl, &cbl); // dot tr, dot tl, dot br, dot bl;
-    return lerp(u,
-                lerp(v, dtr, dtl),
-                lerp(v, dbr, dbl)
-            );
-}
-
-static float FractalBrownainNoise(int x, int y, int octaves, const int* pP_table) {
-    float result = 0.0f, amplitude = 1.0f, frequency = 0.005f, n = 0.0f;
-
-
-    for (int oct = 0; oct < octaves; oct++) {
-        n = amplitude * perlinNoise(x * frequency, y * frequency, pP_table);
-        result += n;
-        amplitude *= 0.5f;
-        frequency *= 2.0f;
-    }
-    return result;
+    return fin/div;
 }
 
 static int generate_pixel_colors(Uint32 pixel_colors[MAP_HEIGHT][MAP_WIDTH]) {
     float n;
     int c;
-    int* pP_table = initPTable();
-    if (!pP_table) {
-        return 0;
-    }
+    //int* pP_table = initPTable();
+    //if (!pP_table) {
+    //    return 0;
+    //}
 
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            n = FractalBrownainNoise(x, y, FBM_OCTAVES, pP_table);
+            n = perlinNoise(x, y, 0.015, 8);
             // Restircting the value of n to be between 0 and 1 instead of -1 and 1
             n += 1.0;
             n /= 2.0;
@@ -134,7 +103,7 @@ static int generate_pixel_colors(Uint32 pixel_colors[MAP_HEIGHT][MAP_WIDTH]) {
             pixel_colors[y][x] = encodeColor(c, c, c, 255);
         }
     }
-    free(pP_table);
+    //free(pP_table);
     return 1;
 }
 
@@ -178,7 +147,7 @@ Obj** generateTerrainMap() {
     }
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            if (!allocObj(terrain_map, &map_i, x, y, 1, 1, pixel_colors[y][x], 0)) {
+            if (!allocObj(terrain_map, &map_i, x* TILE_SQUARE_SIDE, y* TILE_SQUARE_SIDE, 1* TILE_SQUARE_SIDE,1* TILE_SQUARE_SIDE, pixel_colors[y][x], 0)) {
                 return NULL;
             }
         }

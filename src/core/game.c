@@ -10,7 +10,7 @@ static int initGame(GameContext* pMain_context, Player* pPlayer, Obj*** pTerrain
     status = initSDL();
     *pMain_context = createGameContext("MyGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                       SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
-    *pPlayer = createPlayer((MAP_WIDTH / 2) - (PLAYER_WIDTH / 2), (MAP_HEIGHT / 2) - (PLAYER_HEIGHT / 2), // Ensures that the player is centered.
+    *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (PLAYER_WIDTH / 2), (SCREEN_HEIGHT / 2) - (PLAYER_HEIGHT / 2), // Ensures that the player is centered.
                             PLAYER_WIDTH, PLAYER_HEIGHT, 0xff00ffff, 1, 100, 200);
     *pTerrainMap = generateTerrainMap();
     if (!pMain_context->win || !(*pTerrainMap)) {
@@ -34,7 +34,7 @@ static void gameloop(int is_running, GameContext* pMain_context, Player* pPlayer
         TODO: Set a FPS cap of around 60-120 fps and then REMOVE THE VSYNC FROM THE renderer constraints while creating.
         TODO: Make a game_state_handler moduele.
         */
-        handleState(pPlayer, mov_x_comp, mov_y_comp, &mov_x_offset, &mov_y_offset, delta_time);
+        handleState(pPlayer, &terrain_map, mov_x_comp, mov_y_comp, &mov_x_offset, &mov_y_offset, delta_time);
         render(pMain_context, pPlayer, terrain_map);
         mov_x_comp = mov_y_comp = mov_x_offset = mov_y_offset = 0; // This is set to 0 here and not in the state handler as the graphics handler needs the offsets.
         frame_c++;

@@ -13,8 +13,7 @@ static float noise2D(float x, float y, int *pP_table);
 static float perlinNoise(float x, float y, float freq, int octaves, int *pP_table);
 static void freePixelColors(Uint32 **to_free);
 static Uint32 **generatePixelColors(float freq);
-static int allocObj(Obj **terrain_map, int *pTerrain_map_i, int x, int y, int w,
-                    int h, Uint32 color_hex, int can_collide);
+static void freeColData(ScreenColData *to_free);
 
 static int *initPTable()
 {
@@ -101,7 +100,7 @@ static Uint32 **generatePixelColors(float freq)
     float n;
     int c;
     int *pP_table = initPTable();
-    Uint32 **pixel_colors = malloc((MAP_HEIGHT + 1) * sizeof(int *)), *temp;
+    Uint32 **pixel_colors = malloc((MAP_HEIGHT + 1) * sizeof(Uint32 *)), *temp;
 
     if (!pP_table)
     {
@@ -133,67 +132,97 @@ static Uint32 **generatePixelColors(float freq)
         }
         pixel_colors[y] = temp;
     }
+    pixel_colors[MAP_HEIGHT] = NULL;
     free(pP_table);
     return pixel_colors;
 }
 
-void freeTerrainMap(Obj **to_free)
+static void freeColData(ScreenColData *to_free)
 {
+    ScreenColData *next;
+
     if (!to_free)
     {
         return;
     }
-    for (int i = 0; to_free[i]; i++)
+    for (int i = 0; i < COL_COUNT; i++)
     {
-        free(to_free[i]);
+        next = to_free->next;
+        free(to_free);
+        to_free = next;
+    }
+}
+
+int addColNode(ScreenColData **to_add, int add_to_start,
+               int x, int y, int w, int h, int can_collide, Uint32 color_hex)
+{
+    Obj obj = createObj(x, y, w, h, color_hex, can_collide);
+    ScreenColData *col_node = malloc(sizeof(ScreenColData));
+
+    if (!col_node)
+    {
+        fprintf(stderr, "Failed to allocate memory for ScreenColData node.\n");
+        freeColData(*to_add);
+        *to_add = NULL;
+        return 0;
+    }
+    col_node->obj = obj;
+    if (!*to_add)
+    {
+        col_node->next = col_node;
+        col_node->prev = col_node;
+    }
+    else
+    {
+        col_node->next = *to_add;
+        col_node->prev = (*to_add)->prev;
+        (*to_add)->prev->next = col_node;
+        (*to_add)->prev = col_node;
+    }
+    if (!*to_add || add_to_start)
+    {
+        (*to_add) = col_node;
+    }
+    return 1;
+}
+
+void freeScreenData(ScreenColData **to_free)
+{
+    for (int i = 0; i < ROW_COUNT && to_free[i]; i++)
+    {
+        freeColData(to_free[i]);
     }
     free(to_free);
 }
 
-static int allocObj(Obj **terrain_map, int *pTerrain_map_i, int x, int y, int w,
-                    int h, Uint32 color_hex, int can_collide)
+ScreenColData **initScreenData()
 {
-    Obj *obj = malloc(sizeof(Obj));
-
-    if (!obj)
-    {
-        fprintf(stderr, "Can't malloc space for a object int the lvl data.\n");
-        terrain_map[*pTerrain_map_i] = NULL;
-        freeTerrainMap(terrain_map);
-        return 0;
-    }
-    *obj = createObj(x, y, w, h, color_hex, can_collide);
-    terrain_map[(*pTerrain_map_i)++] = obj;
-    return 1;
-}
-
-Obj **generateTerrainMap()
-{
-    int map_i = 0;
-    Obj **terrain_map = malloc((MAP_HEIGHT * MAP_WIDTH + 1) * sizeof(Obj *)); // +1 for NULL sentinal
+    ScreenColData **screen_data = malloc(ROW_COUNT * sizeof(ScreenColData *)); // NOTE: This ScreenColData** is not equivalent to the screeColData** in addColNode()
     Uint32 **pixel_colors = generatePixelColors(PERLIN_TERRAIN_FREQ);
 
-    if (!terrain_map)
+    if (!screen_data)
     {
-        fprintf(stderr, "Failed to allocate memory for terrain map\n");
+        fprintf(stderr, "Failed to allocate memory for screen data\n");
         return NULL;
     }
     if (!pixel_colors)
     {
-        freeTerrainMap(terrain_map);
+        free(screen_data);
         return NULL;
     }
-    for (int y = 0; y < MAP_HEIGHT; y++)
+    for (int i = 0; i < ROW_COUNT; i++)
     {
-        for (int x = 0; x < MAP_WIDTH; x++)
+        screen_data[i] = NULL;
+        for (int j = 0; j < COL_COUNT; j++)
         {
-            if (!allocObj(terrain_map, &map_i, x * TILE_SQUARE_SIDE, y * TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, pixel_colors[y][x], 0))
+            if (!addColNode(&screen_data[i], 0, j * TILE_SQUARE_SIDE, i * TILE_SQUARE_SIDE,
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, pixel_colors[j][i]))
             {
+                freeScreenData(screen_data);
                 return NULL;
             }
         }
     }
-    terrain_map[map_i] = NULL;
     freePixelColors(pixel_colors);
-    return terrain_map;
+    return screen_data;
 }

@@ -4,9 +4,9 @@
 #include "global_consts.h"
 #include "player.h"
 #include "physics.h"
-#include "object.h"
+#include "map_generator.h"
 
-extern void handleState(Player *pPlayer, Obj ***pTerrain_map, int x_comp, int y_comp,
-                        int *pX_offset, int *pY_offset, double delta_time);
+extern void handleState(Player *pPlayer, int *pX_comp, int *pY_comp,
+                        int *pAccumulated_x_offset, int *pAccumulated_y_offset, double delta_time);
 
 #endif

@@ -52,29 +52,37 @@ void quitSDL(GameContext *pMain_context)
     SDL_Quit();
 }
 
-void renderObj(GameContext *pContext, Obj *pTo_render)
+void renderObj(SDL_Renderer *renderer, Obj *pTo_render,
+               int accumulated_x_offset, int accumulated_y_offset)
 {
     Uint8 r, g, b, a;
+    Obj new = *pTo_render;
 
+    new.rect.x -= accumulated_x_offset;
+    new.rect.y -= accumulated_y_offset;
     decodeColor(pTo_render->color_hex, &r, &g, &b, &a);
-    // Tp ensure rects only in fov get rendered.
-    if (!isRectInFOV(&(pTo_render->rect)))
-    {
-        return;
-    }
-    SDL_SetRenderDrawColor(pContext->renderer, r, g, b, a);
-    SDL_RenderFillRect(pContext->renderer, &(pTo_render->rect));
+    SDL_SetRenderDrawColor(renderer, r, g, b, a);
+    SDL_RenderFillRect(renderer, &new.rect);
 }
 
-void render(GameContext *pContext, Player *pPlayer, Obj **terrain_map)
+void render(GameContext *pContext, Player *pPlayer, ScreenColData **terrain_map,
+            int accumulated_x_offset, int accumulated_y_offset)
 {
+    ScreenColData *col_data;
+
     SDL_SetRenderDrawColor(pContext->renderer, 255, 255, 255, 255);
     SDL_RenderClear(pContext->renderer);
-    for (int i = 0; terrain_map[i]; i++)
+    for (int i = 0; i < ROW_COUNT; i++)
     {
-        renderObj(pContext, terrain_map[i]);
+        col_data = terrain_map[i];
+        for (int j = 0; j < COL_COUNT; j++)
+        {
+            //printf("Col %d %d: %d %d", i, j, col_data->obj.rect.x, col_data->obj.rect.y);
+            renderObj(pContext->renderer, &col_data->obj, accumulated_x_offset, accumulated_y_offset);
+            col_data = col_data->next;
+        }
     }
-    renderObj(pContext, &(pPlayer->obj));
+    renderObj(pContext->renderer, &pPlayer->obj, 0, 0); // Here the offsets are zero to prevent moving the player.
     SDL_RenderPresent(pContext->renderer);
 }
 

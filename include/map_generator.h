@@ -16,9 +16,10 @@ struct ScreenColData
 }; // A doubly circular linked list.
 //? ScreenColData[SCREEN_HEIGHT / TILE_SQUARE_SIZE] is the entire screen data.
 
-int addColNode(ScreenColData **to_add, int add_to_start,
-               int x, int y, int w, int h, int can_collide, Uint32 color_hex);
-void freeScreenData(ScreenColData **to_free);
-ScreenColData **initScreenData();
+extern int *initPTable();
+extern int addColNode(ScreenColData **to_add, int add_to_start,
+                      int x, int y, int w, int h, int can_collide, Uint32 color_hex);
+extern void freeScreenData(ScreenColData **to_free);
+extern ScreenColData **initScreenData(int *pP_table, float freq);
 
 #endif

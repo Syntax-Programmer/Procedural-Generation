@@ -1,20 +1,21 @@
 #include "game.h"
 
-static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap);
+static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap, int **ptr_pP_table);
 static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer, ScreenColData **terrain_map);
-static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map);
+static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map, int *pP_table);
 
-static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap)
+static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap, int **ptr_pP_table)
 {
     int status;
 
     status = initSDL();
     *pMain_context = createGameContext("MyGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                        SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
-    *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (PLAYER_WIDTH / 2), (SCREEN_HEIGHT / 2) - (PLAYER_HEIGHT / 2), // Ensures that the player is centered.
-                            PLAYER_WIDTH, PLAYER_HEIGHT, 0xff00ffff, 1, 100, 200);
-    *pTerrainMap = initScreenData();
-    if (!pMain_context->win || !(*pTerrainMap))
+    *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (TILE_SQUARE_SIDE / 2), (SCREEN_HEIGHT / 2) - (TILE_SQUARE_SIDE / 2), // Ensures that the player is centered.
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0xddcb33ff, 1, 100, 200);
+    *ptr_pP_table = initPTable();
+    *pTerrainMap = initScreenData(*ptr_pP_table, PERLIN_TERRAIN_FREQ);
+    if (!pMain_context->win || !(*pTerrainMap) || !(*ptr_pP_table))
     {
         status = 0;
     }
@@ -47,10 +48,11 @@ static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer
     }
 }
 
-static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map)
+static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map, int *pP_table)
 {
     destroyGameContext(pMain_context);
     SDL_Quit();
+    free(pP_table);
     freeScreenData(terrain_map);
 }
 
@@ -58,9 +60,10 @@ void game()
 {
     GameContext main_context;
     Player player;
+    int *pP_table;
     ScreenColData **terrain_map;
-    int is_running = initGame(&main_context, &player, &terrain_map);
+    int is_running = initGame(&main_context, &player, &terrain_map, &pP_table);
 
     gameloop(is_running, &main_context, &player, terrain_map);
-    exitGame(&main_context, terrain_map);
+    exitGame(&main_context, terrain_map, pP_table);
 }

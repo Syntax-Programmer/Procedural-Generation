@@ -6,16 +6,14 @@
 
 #include "map_generator.h"
 
-static int *initPTable();
 static int noise(int x, int y, int *pP_table);
 static float smoothInterpolation(float x, float y, float t);
 static float noise2D(float x, float y, int *pP_table);
 static float perlinNoise(float x, float y, float freq, int octaves, int *pP_table);
-static void freePixelColors(Uint32 **to_free);
-static Uint32 **generatePixelColors(float freq);
+static float FBM(float freq, int x, int y, int *pP_table);
 static void freeColData(ScreenColData *to_free);
 
-static int *initPTable()
+int *initPTable()
 {
     int *table = malloc(P_TABLE_SIZE * sizeof(int));
     int temp, j;
@@ -82,59 +80,16 @@ static float perlinNoise(float x, float y, float freq, int octaves, int *pP_tabl
     return fin / div;
 }
 
-static void freePixelColors(Uint32 **to_free)
-{
-    if (!to_free)
-    {
-        return;
-    }
-    for (int i = 0; to_free[i]; i++)
-    {
-        free(to_free[i]);
-    }
-    free(to_free);
-}
-
-static Uint32 **generatePixelColors(float freq)
+static float FBM(float freq, int x, int y, int *pP_table)
 {
     float n;
-    int c;
-    int *pP_table = initPTable();
-    Uint32 **pixel_colors = malloc((MAP_HEIGHT + 1) * sizeof(Uint32 *)), *temp;
 
-    if (!pP_table)
-    {
-        return 0;
-    }
-    if (!pixel_colors)
-    {
-        fprintf(stderr, "Failed to allocate memory for pixel colors\n");
-        return NULL;
-    }
-    for (int y = 0; y < MAP_HEIGHT; y++)
-    {
-        temp = malloc(MAP_WIDTH * sizeof(int));
-        if (!temp)
-        {
-            pixel_colors[y] = NULL;
-            freePixelColors(pixel_colors);
-            return NULL;
-        }
-        for (int x = 0; x < MAP_WIDTH; x++)
-        {
-            n = perlinNoise(x, y, freq, PERLIN_OCTAVES, pP_table);
-            // Restircting the value of n to be between 0 and 1 instead of -1 and 1
-            n += 1.0;
-            n /= 2.0;
-            n = n * n * n * n; // Improving the contrast
-            c = (n * 255);     // Convrting from [0, 1] to [0, 255]
-            temp[x] = encodeColor(c, c, c, 255);
-        }
-        pixel_colors[y] = temp;
-    }
-    pixel_colors[MAP_HEIGHT] = NULL;
-    free(pP_table);
-    return pixel_colors;
+    n = perlinNoise(x, y, freq, PERLIN_OCTAVES, pP_table);
+    // Restircting the value of n to be between 0 and 1 instead of -1 and 1
+    n += 1.0;
+    n /= 2.0;
+    n = n * n * n * n; // Improving the contrast
+    return n;
 }
 
 static void freeColData(ScreenColData *to_free)
@@ -195,19 +150,15 @@ void freeScreenData(ScreenColData **to_free)
     free(to_free);
 }
 
-ScreenColData **initScreenData()
+ScreenColData **initScreenData(int *pP_table, float freq)
 {
     ScreenColData **screen_data = malloc(ROW_COUNT * sizeof(ScreenColData *)); // NOTE: This ScreenColData** is not equivalent to the screeColData** in addColNode()
-    Uint32 **pixel_colors = generatePixelColors(PERLIN_TERRAIN_FREQ);
+    float perlin_index;
+    Uint32 color = 0;
 
     if (!screen_data)
     {
         fprintf(stderr, "Failed to allocate memory for screen data\n");
-        return NULL;
-    }
-    if (!pixel_colors)
-    {
-        free(screen_data);
         return NULL;
     }
     for (int i = 0; i < ROW_COUNT; i++)
@@ -215,14 +166,33 @@ ScreenColData **initScreenData()
         screen_data[i] = NULL;
         for (int j = 0; j < COL_COUNT; j++)
         {
+            perlin_index = FBM(freq, j, i, pP_table);
+            if (freq <= 0.02 && freq >= 0.01) // Due to floating point inaccuracy.
+            {
+                if (perlin_index <= 0.2)
+                {
+                    color = encodeColor(100, 100, 100, 255);
+                }
+                else if (perlin_index <= 0.4)
+                {
+                    color = encodeColor(150, 150, 150, 255);
+                }
+                else if (perlin_index <= 0.6)
+                {
+                    color = encodeColor(200, 200, 200, 255);
+                }
+                else
+                {
+                    color = encodeColor(250, 250, 250, 255);
+                }
+            }
             if (!addColNode(&screen_data[i], 0, j * TILE_SQUARE_SIDE, i * TILE_SQUARE_SIDE,
-                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, pixel_colors[j][i]))
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, color))
             {
                 freeScreenData(screen_data);
                 return NULL;
             }
         }
     }
-    freePixelColors(pixel_colors);
     return screen_data;
 }

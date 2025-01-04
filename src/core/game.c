@@ -1,20 +1,25 @@
 #include "game.h"
 
-static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap, int **ptr_pP_table);
-static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer, ScreenColData **terrain_map);
+static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap,
+                    int **ptr_pP_table, int *pSeed);
+static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer,
+                     ScreenColData **terrain_map, int *pP_table, int seed);
 static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map, int *pP_table);
 
-static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap, int **ptr_pP_table)
+static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap,
+                    int **ptr_pP_table, int *pSeed)
 {
     int status;
 
+    *pSeed = time(NULL);
+    srand(*pSeed);
     status = initSDL();
     *pMain_context = createGameContext("MyGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                        SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
     *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (TILE_SQUARE_SIDE / 2), (SCREEN_HEIGHT / 2) - (TILE_SQUARE_SIDE / 2), // Ensures that the player is centered.
-                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0xddcb33ff, 1, 100, 200);
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE * 2, 0xddcb33ff, 1, 100, 200);
     *ptr_pP_table = initPTable();
-    *pTerrainMap = initScreenData(*ptr_pP_table, PERLIN_TERRAIN_FREQ);
+    *pTerrainMap = initScreenData(*ptr_pP_table, PERLIN_TERRAIN_FREQ, *pSeed);
     if (!pMain_context->win || !(*pTerrainMap) || !(*ptr_pP_table))
     {
         status = 0;
@@ -22,7 +27,8 @@ static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData *
     return status;
 }
 
-static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer, ScreenColData **terrain_map)
+static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer,
+                     ScreenColData **terrain_map, int *pP_table, int seed)
 {
     time_t start = time(NULL);
     double delta_time = 1.0 / 60.0;
@@ -41,8 +47,8 @@ static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer
         TODO: Set a FPS cap of around 60-120 fps and then REMOVE THE VSYNC FROM THE renderer constraints while creating.
         TODO: Make a game_state_handler moduele.
         */
-        handleState(pPlayer, &mov_x_comp, &mov_y_comp, &accumulated_x_offset,
-                    &accumulated_y_offset, delta_time);
+        handleState(pPlayer, terrain_map, pP_table, &mov_x_comp, &mov_y_comp, &accumulated_x_offset,
+                    &accumulated_y_offset, delta_time, seed);
         render(pMain_context, pPlayer, terrain_map, accumulated_x_offset, accumulated_y_offset);
         frame_c++;
     }
@@ -60,10 +66,10 @@ void game()
 {
     GameContext main_context;
     Player player;
-    int *pP_table;
+    int seed, *pP_table;
     ScreenColData **terrain_map;
-    int is_running = initGame(&main_context, &player, &terrain_map, &pP_table);
+    int is_running = initGame(&main_context, &player, &terrain_map, &pP_table, &seed);
 
-    gameloop(is_running, &main_context, &player, terrain_map);
+    gameloop(is_running, &main_context, &player, terrain_map, pP_table, seed);
     exitGame(&main_context, terrain_map, pP_table);
 }

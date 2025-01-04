@@ -70,7 +70,7 @@ void render(GameContext *pContext, Player *pPlayer, ScreenColData **terrain_map,
 {
     ScreenColData *col_data;
 
-    SDL_SetRenderDrawColor(pContext->renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(pContext->renderer, 0, 0, 0, 255);
     SDL_RenderClear(pContext->renderer);
     for (int i = 0; i < ROW_COUNT; i++)
     {

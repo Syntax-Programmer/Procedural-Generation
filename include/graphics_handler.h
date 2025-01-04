@@ -5,7 +5,7 @@
 #include "physics.h"
 #include "player.h"
 #include "global_consts.h"
-#include "map_generator.h"
+#include "map_manager.h"
 
 typedef struct GameContext
 {

@@ -8,7 +8,7 @@ BUILD_DIR="build"
 
 CORE_SRC="${SRC_DIR}/core/game.c ${SRC_DIR}/core/graphics_handler.c ${SRC_DIR}/core/state_handler.c"
 ENGINE_SRC="${SRC_DIR}/modules/object.c ${SRC_DIR}/modules/physics.c ${SRC_DIR}/modules/player.c
-            ${SRC_DIR}/modules/map_generator.c"
+            ${SRC_DIR}/modules/map_manager.c"
 MAIN_SRC="${SRC_DIR}/main.c"
 
 OUTPUT="${BUILD_DIR}/Game"

@@ -2,93 +2,80 @@
     Used a techinque called Perlin Noise with Fractal Brownian Motion to generate the map.
     For reference here is the resource I used:
     https://rtouti.github.io/graphics/perlin-noise-algorithm
+    https://adrianb.io/2014/08/09/perlinnoise.html
+    https://gist.github.com/Flafla2/f0260a861be0ebdeef76
 */
 
 #include "map_manager.h"
 
-static int noise(int x, int y, int *pP_table, int seed);
-static float smoothInterpolation(float x, float y, float t);
-static float noise2D(float x, float y, int *pP_table, int seed);
-static float perlinNoise(float x, float y, float freq, int octaves, int *pP_table, int seed);
-static Uint32 FBM(float freq, int x, int y, int *pP_table, int seed);
+static float perlin(float x, float y, int seed);
+static Uint32 FBM(float freq, int x, int y, int seed);
 static void freeColData(ScreenColData *to_free);
 
-static int noise(int x, int y, int *pP_table, int seed)
+static float perlin(float x, float y, int seed)
 {
-    int tmp = pP_table[(y + seed) % P_TABLE_SIZE];
+    // WTF is this shit, I spent 2 days looking for the issue of why this doesn't work for
+    //  negative numbers and you tell me that randomly replacing (int)x with floor(x) fixes it.
+    //  FUCK YOU
 
-    return pP_table[abs((tmp + x) % P_TABLE_SIZE)];
+    // Determine grid cell corner coordinates
+    int x0 = floor(x), y0 = floor(y);
+    int x1 = x0 + 1, y1 = y0 + 1;
+
+    // Compute Interpolation weights
+    float sx = x - x0, sy = y - y0;
+
+    // Compute and interpolate top two corners
+    float n0 = dotGridGradient(x0, y0, x, y, seed), n1 = dotGridGradient(x1, y0, x, y, seed);
+    float ix0 = interpolate(n0, n1, sx);
+    float ix1;
+
+    // Compute and interpolate bottom two corners
+    n0 = dotGridGradient(x0, y1, x, y, seed);
+    n1 = dotGridGradient(x1, y1, x, y, seed);
+    ix1 = interpolate(n0, n1, sx);
+    // Final step: interpolate between the two previously interpolated values, now in y
+    return interpolate(ix0, ix1, sy);
 }
 
-static float smoothInterpolation(float x, float y, float t)
+static Uint32 FBM(float freq, int x, int y, int seed)
 {
-    float ease_const = ((6 * t - 15) * t + 10) * t * t * t;
+    float val = 0, amp = 1;
 
-    return x + (y - x) * ease_const;
-}
-
-static float noise2D(float x, float y, int *pP_table, int seed)
-{
-    int x_int = x, y_int = y;
-
-    x -= x_int;
-    y -= y_int;
-    int s = noise(x_int, y_int, pP_table, seed);
-    int t = noise(x_int + 1, y_int, pP_table, seed);
-    int u = noise(x_int, y_int + 1, pP_table, seed);
-    int v = noise(x_int + 1, y_int + 1, pP_table, seed);
-    float low = smoothInterpolation(s, t, x);
-    float high = smoothInterpolation(u, v, x);
-    return smoothInterpolation(low, high, y);
-}
-
-static float perlinNoise(float x, float y, float freq, int octaves, int *pP_table, int seed)
-{
-    float amp = 1.0, fin = 0.0, div = 0.0;
-
-    for (int i = 0; i < octaves; i++)
+    for (int i = 0; i < PERLIN_OCTAVES; i++)
     {
-        div += 256 * amp;
-        fin += noise2D(x * freq, y * freq, pP_table, seed) * amp;
-        amp /= 2;
+        val += perlin(x * freq, y * freq, seed) * amp;
         freq *= 2;
+        amp /= 2;
     }
-    return fin / div;
-}
-
-static Uint32 FBM(float freq, int x, int y, int *pP_table, int seed)
-{
-    float n;
-
-    n = perlinNoise(x, y, freq, PERLIN_OCTAVES, pP_table, seed);
-    // Restircting the value of n to be between 0 and 1 instead of -1 and 1
-    n += 1.0;
-    n /= 2.0;
-    n = n * n * n * n;                // Improving the contrast
-    if (freq <= 0.02 && freq >= 0.01) // Due to floating point inaccuracy.
+    val *= 1.2; // Constrast
+    // Clipping.
+    if (val > 1.0f)
+        val = 1.0f;
+    else if (val < -1.0f)
+        val = -1.0f;
+    //* change this to not restirct for more natural terrain.
+    val = (val + 1) * 0.5; // Restricting to [0, 1]
+    if (val <= 0.2)
     {
-        if (n <= 0.2)
-        {
-            return encodeColor(123, 232, 33, 255);
-        }
-        else if (n <= 0.4)
-        {
-            return encodeColor(118, 182, 196, 255);
-        }
-        else if (n <= 0.6)
-        {
-            return encodeColor(194, 178, 128, 255);
-        }
-        else if (n <= 0.8)
-        {
-            return encodeColor(124, 252, 0, 255);
-        }
-        else
-        {
-            return encodeColor(250, 250, 250, 255);
-        }
+        return encodeColor(123, 232, 33, 255);
     }
-    return encodeColor(255, 255, 255, 255);
+    else if (val <= 0.4)
+    {
+        return encodeColor(118, 182, 196, 255);
+    }
+    else if (val <= 0.6)
+    {
+        return encodeColor(194, 178, 128, 255);
+    }
+    else if (val <= 0.8)
+    {
+        return encodeColor(124, 252, 0, 255);
+    }
+    else
+    {
+        return encodeColor(250, 250, 250, 255);
+    }
 }
 
 static void freeColData(ScreenColData *to_free)
@@ -173,7 +160,7 @@ void freeScreenData(ScreenColData **to_free)
     free(to_free);
 }
 
-ScreenColData **initScreenData(int *pP_table, float freq, int seed)
+ScreenColData **initScreenData(float freq, int seed)
 {
     /*
     Using array of circular doubly linked lists instead of array grid, so that
@@ -193,7 +180,7 @@ ScreenColData **initScreenData(int *pP_table, float freq, int seed)
         for (int j = 0; j < COL_COUNT; j++)
         {
             if (!addColNode(&screen_data[i], 0, j * TILE_SQUARE_SIDE, i * TILE_SQUARE_SIDE,
-                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, FBM(freq, j, i, pP_table, seed)))
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, FBM(freq, j, i, seed)))
             {
                 freeScreenData(screen_data);
                 return NULL;
@@ -264,7 +251,7 @@ void findDataOutOfFOV(ScreenColData **data, int accumulated_x_offset, int accumu
     }
 }
 
-int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov, float freq, int *pP_table, int seed)
+int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov, float freq, int seed)
 {
     ScreenColData *curr;
 
@@ -280,7 +267,7 @@ int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov,
         for (int i = 0; i < COL_COUNT; i++)
         {
             if (!addColNode(&data[ROW_COUNT - 1], 0, curr->obj.rect.x, curr->obj.rect.y + TILE_SQUARE_SIDE,
-                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, FBM(freq, curr->obj.rect.x / TILE_SQUARE_SIDE, (curr->obj.rect.y + TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, pP_table, seed)))
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, FBM(freq, curr->obj.rect.x / TILE_SQUARE_SIDE, (curr->obj.rect.y + TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, seed)))
             {
                 freeScreenData(data);
                 return 0;
@@ -300,7 +287,7 @@ int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov,
         for (int i = 0; i < COL_COUNT; i++)
         {
             if (!addColNode(&data[0], 0, curr->obj.rect.x, curr->obj.rect.y - TILE_SQUARE_SIDE,
-                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, FBM(freq, curr->obj.rect.x / TILE_SQUARE_SIDE, (curr->obj.rect.y - TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, pP_table, seed)))
+                            TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, 0, FBM(freq, curr->obj.rect.x / TILE_SQUARE_SIDE, (curr->obj.rect.y - TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, seed)))
             {
                 freeScreenData(data);
                 return 0;
@@ -313,7 +300,7 @@ int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov,
         for (int i = 0; i < ROW_COUNT; i++)
         {
             data[i]->obj = createObj(data[i]->prev->obj.rect.x + TILE_SQUARE_SIDE, data[i]->obj.rect.y,
-                                     TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, FBM(freq, (data[i]->prev->obj.rect.x + TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, data[i]->obj.rect.y / TILE_SQUARE_SIDE, pP_table, seed), 0);
+                                     TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, FBM(freq, (data[i]->prev->obj.rect.x + TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, data[i]->obj.rect.y / TILE_SQUARE_SIDE, seed), 0);
             data[i] = data[i]->next;
         }
     }
@@ -322,7 +309,7 @@ int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov,
         for (int i = 0; i < ROW_COUNT; i++)
         {
             data[i]->prev->obj = createObj(data[i]->obj.rect.x - TILE_SQUARE_SIDE, data[i]->obj.rect.y,
-                                           TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, FBM(freq, (data[i]->obj.rect.x - TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, data[i]->obj.rect.y / TILE_SQUARE_SIDE, pP_table, seed), 0);
+                                           TILE_SQUARE_SIDE, TILE_SQUARE_SIDE, FBM(freq, (data[i]->obj.rect.x - TILE_SQUARE_SIDE) / TILE_SQUARE_SIDE, data[i]->obj.rect.y / TILE_SQUARE_SIDE, seed), 0);
             data[i] = data[i]->prev;
         }
     }

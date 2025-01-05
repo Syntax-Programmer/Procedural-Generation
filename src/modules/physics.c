@@ -62,3 +62,41 @@ int isRectInFOV(const SDL_Rect *pRect)
     }
     return 1;
 }
+
+vector2 randomGradient(int ix, int iy, int seed)
+{
+    // No precomputed gradients mean this works for any number of grid coordinates
+    const unsigned w = 8 * sizeof(unsigned);
+    const unsigned s = w / 2;
+    unsigned a = ix, b = iy;
+    vector2 v;
+
+    a *= seed;
+    b ^= a << s | a >> (w - s);
+    b *= seed ^ 0x9E3779B9;
+    a ^= b << s | b >> (w - s);
+    a *= seed * 0x85EBCA77;
+    b ^= (a + seed) ^ 0xC2B2AE3D;
+    float random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
+    // Create the vector from the angle
+    v.x = sin(random);
+    v.y = cos(random);
+
+    return v;
+}
+
+float dotGridGradient(int ix, int iy, float x, float y, int seed)
+{
+    // Get gradient from integer coordinates
+    vector2 gradient = randomGradient(ix, iy, seed);
+    // Compute the distance vector
+    float dx = x - ix, dy = y - iy;
+
+    // Compute the dot-product
+    return (dx * gradient.x + dy * gradient.y);
+}
+
+float interpolate(float a0, float a1, float w)
+{
+    return (a1 - a0) * ((6 * w - 15) * w + 10) * w * w * w + a0;
+}

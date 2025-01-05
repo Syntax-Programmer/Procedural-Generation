@@ -14,7 +14,7 @@ static void attemptRollbackMove(Obj **terrain_map, int rollback_limit, int *pX_o
     }
 }
 
-void handleState(Player *pPlayer, ScreenColData **terrain_map, int *pP_table, int *pX_comp, int *pY_comp,
+void handleState(Player *pPlayer, ScreenColData **terrain_map, int *pX_comp, int *pY_comp,
                  int *pAccumulated_x_offset, int *pAccumulated_y_offset, double delta_time, int seed)
 {
     int colliding_obj_i = 0, world_x_offset = 0, world_y_offset = 0, x_out_of_fov = 0, y_out_of_fov = 0;
@@ -26,7 +26,7 @@ void handleState(Player *pPlayer, ScreenColData **terrain_map, int *pP_table, in
     if (world_x_offset || world_y_offset)
     {
         findDataOutOfFOV(terrain_map, *pAccumulated_x_offset, *pAccumulated_y_offset, &x_out_of_fov, &y_out_of_fov);
-        if (!updateDataOutOfFOV(terrain_map, x_out_of_fov, y_out_of_fov, PERLIN_TERRAIN_FREQ, pP_table, seed))
+        if (!updateDataOutOfFOV(terrain_map, x_out_of_fov, y_out_of_fov, PERLIN_TERRAIN_FREQ, seed))
         {
             assert("ERROR in the updateDataOutOfFOV.\n");
         }

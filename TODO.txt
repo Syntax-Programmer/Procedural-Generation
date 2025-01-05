@@ -1,6 +1,5 @@
-Make use of all the info in the tilemap.json
+Rewrite the perlin noise algoritm using https://adrianb.io/2014/08/09/perlinnoise.html and https://gist.github.com/Flafla2/f0260a861be0ebdeef76
 
-Make a render_map from the base Obj** layer from tilemap.json that has indices of all the elements to be rendered.
+Optimize the updateinFOV feature in map generator and the init_obj.
 
-From the base Obj** layer generated from tilemap.json, make a seprate array called collision_map, that has all the indices of elements that can show collision.
-This improves performance.
+constant allocation and dealloc cause mem spikes. try fixing it.

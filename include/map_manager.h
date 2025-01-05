@@ -21,9 +21,9 @@ extern int *initPTable();
 extern int addColNode(ScreenColData **to_add, int add_to_start,
                       int x, int y, int w, int h, int can_collide, Uint32 color_hex);
 extern void freeScreenData(ScreenColData **to_free);
-extern ScreenColData **initScreenData(int *pP_table, float freq, int seed);
+extern ScreenColData **initScreenData(float freq, int seed);
 extern void findDataOutOfFOV(ScreenColData **data, int accumulated_x_offset, int accumulated_y_offset,
                              int *pX_out_of_fov, int *pY_out_of_fov);
-extern int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov, float freq, int *pP_table, int seed);
+extern int updateDataOutOfFOV(ScreenColData **data, int x_out_of_fov, int y_out_of_fov, float freq, int seed);
 
 #endif

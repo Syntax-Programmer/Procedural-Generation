@@ -94,30 +94,6 @@ static void freeColData(ScreenColData *to_free)
     } while (current != to_free);
 }
 
-int *initPTable()
-{
-    int *table = malloc(P_TABLE_SIZE * sizeof(int));
-    int temp, j;
-
-    if (!table)
-    {
-        return NULL;
-    }
-    for (int i = 0; i < P_TABLE_SIZE; i++)
-    {
-        table[i] = i;
-    }
-    // Shuffling the array;
-    for (int i = P_TABLE_SIZE - 1; i > 0; i--)
-    {
-        j = rand() % i;
-        temp = table[i];
-        table[i] = table[j];
-        table[j] = temp;
-    }
-    return table;
-}
-
 int addColNode(ScreenColData **to_add, int add_to_start,
                int x, int y, int w, int h, int can_collide, Uint32 color_hex)
 {

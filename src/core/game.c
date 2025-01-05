@@ -36,6 +36,7 @@ static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer
 
     while (is_running)
     {
+        printf("%f\n", 1 / delta_time);
         getDeltaTime(&start, &delta_time, &frame_c);
         if (!handleEvents(&mov_x_comp, &mov_y_comp))
         {
@@ -44,7 +45,6 @@ static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer
         }
         /*
         TODO: Set a FPS cap of around 60-120 fps and then REMOVE THE VSYNC FROM THE renderer constraints while creating.
-        TODO: Make a game_state_handler moduele.
         */
         handleState(pPlayer, terrain_map, &mov_x_comp, &mov_y_comp, &accumulated_x_offset,
                     &accumulated_y_offset, delta_time, seed);

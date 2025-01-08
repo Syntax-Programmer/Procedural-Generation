@@ -3,11 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "/usr/include",
-                "/usr/local/include",
-                "/home/anand/Documents/ARPG/include/",
-                "/usr/include/SDL2",
-                "/usr/include/json-c"
+                "${workspaceFolder}/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

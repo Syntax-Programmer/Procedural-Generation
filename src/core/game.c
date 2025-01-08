@@ -1,73 +1,58 @@
-#include "game.h"
+#include "core/game.h"
 
-static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap,
-                    int *pSeed);
-static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer,
-                     ScreenColData **terrain_map, int seed);
-static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map);
+static int initGame(Context *pMain_context, int *pSeed, Player *pPlayer, ChunkData ***pTerrain_map);
+static void gameLoop(int is_running, int seed, Context *pMain_context, Player *pPlayer,
+                     ChunkData ***pTerrain_map);
+static void exitGame(Context *pMain_context, ChunkData **terrain_map);
 
-static int initGame(GameContext *pMain_context, Player *pPlayer, ScreenColData ***pTerrainMap,
-                    int *pSeed)
-{
-    int status;
+static int initGame(Context *pMain_context, int *pSeed, Player *pPlayer, ChunkData ***pTerrain_map) {
+    int status = initGraphics();
 
+    *pMain_context = createContext("A-RPG", SCREEN_WIDTH, SCREEN_HEIGHT);
     *pSeed = time(NULL);
-    srand(*pSeed);
-    status = initSDL();
-    *pMain_context = createGameContext("MyGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                       SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
-    *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (TILE_SQUARE_SIDE / 2), (SCREEN_HEIGHT / 2) - (TILE_SQUARE_SIDE / 2), // Ensures that the player is centered.
-                            10, 10, 0x000000ff, 1, 100, 150);
-    *pTerrainMap = initScreenData(PERLIN_TERRAIN_FREQ, *pSeed);
-    if (!pMain_context->win || !*pTerrainMap)
-    {
-        status = 0;
+    *pPlayer = createPlayer((SCREEN_WIDTH / 2) - (TILE_SQUARE_SIDE / 2),
+                         (SCREEN_HEIGHT / 2) - (TILE_SQUARE_SIDE / 2), TILE_SQUARE_SIDE,
+                         TILE_SQUARE_SIDE, 255, 255, 255, 200);
+    *pTerrain_map = initTerrainTextureMap(pMain_context->renderer, *pSeed);
+    if (!pMain_context->win || !*pTerrain_map) {
+        status = 1;
     }
     return status;
 }
 
-static void gameloop(int is_running, GameContext *pMain_context, Player *pPlayer,
-                     ScreenColData **terrain_map, int seed)
-{
+static void gameLoop(int is_running, int seed, Context *pMain_context, Player *pPlayer,
+                     ChunkData ***pTerrain_map) {
+    int x_comp = 0, y_comp = 0, frame_c = 0;
+    float cam_x = 0, cam_y = 0; // Total offset accumulated through moving;
     time_t start = time(NULL);
-    double delta_time = 1.0 / 60.0;
-    int frame_c = 0, mov_x_comp = 0, mov_y_comp = 0, accumulated_x_offset = 0,
-        accumulated_y_offset = 0; // Total offset accumulated through moving
+    double delta_time = 1.0 / 200.0;
 
-    while (is_running)
-    {
-        printf("%f\n", 1 / delta_time);
+    while (is_running) {
+        printf("FPS: %f\n", 1/delta_time);
         getDeltaTime(&start, &delta_time, &frame_c);
-        if (!handleEvents(&mov_x_comp, &mov_y_comp))
-        {
-            is_running = 0;
+        if (handleEvents(&x_comp, &y_comp)) {
             break;
         }
-        /*
-        TODO: Set a FPS cap of around 60-120 fps and then REMOVE THE VSYNC FROM THE renderer constraints while creating.
-        */
-        handleState(pPlayer, terrain_map, &mov_x_comp, &mov_y_comp, &accumulated_x_offset,
-                    &accumulated_y_offset, delta_time, seed);
-        render(pMain_context, pPlayer, terrain_map, accumulated_x_offset, accumulated_y_offset);
+        handleState(pPlayer, pTerrain_map, &x_comp, &y_comp, &cam_x,
+                    &cam_y, delta_time, seed);
+        render(pMain_context->renderer, pPlayer, *pTerrain_map, cam_x, cam_y);
         frame_c++;
     }
 }
 
-static void exitGame(GameContext *pMain_context, ScreenColData **terrain_map)
-{
-    destroyGameContext(pMain_context);
-    SDL_Quit();
-    freeScreenData(terrain_map);
+static void exitGame(Context *pMain_context, ChunkData **terrain_map) {
+    quitGraphics(pMain_context);
+    freeTerrainTextureMap(terrain_map);
+    exit(0);
 }
 
-void game()
-{
-    GameContext main_context;
-    Player player;
+void game() {
+    Context main_context;
     int seed;
-    ScreenColData **terrain_map;
-    int is_running = initGame(&main_context, &player, &terrain_map, &seed);
+    Player player;
+    ChunkData **terrain_map;
+    int is_running = !initGame(&main_context, &seed, &player, &terrain_map);
 
-    gameloop(is_running, &main_context, &player, terrain_map, seed);
+    gameLoop(is_running, seed, &main_context, &player, &terrain_map);
     exitGame(&main_context, terrain_map);
 }

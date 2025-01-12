@@ -36,6 +36,7 @@ int initGraphics() {
         fprintf(stderr, "ERROR: Can't initialize graphics subsystem.\n");
         return 1;
     }
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     return 0;
 }
 
@@ -55,7 +56,9 @@ void render(SDL_Renderer *renderer, Player *pPlayer, ChunkData **terrain_map,
     SDL_RenderClear(renderer);
     for (int y = 0; y < ROW_CHUNK_COUNT; y++) {
         for (int x = 0; x < COL_CHUNK_COUNT; x++) {
+            setRectPos(&terrain_map[y][x].dest, terrain_map[y][x].dest.x - cam_x, terrain_map[y][x].dest.y - cam_y);
             SDL_RenderCopyF(renderer, terrain_map[y][x].texture, NULL, &(terrain_map[y][x].dest));
+            setRectPos(&terrain_map[y][x].dest, terrain_map[y][x].dest.x + cam_x, terrain_map[y][x].dest.y + cam_y);
         }
     }
     renderObj(renderer, &pPlayer->obj);

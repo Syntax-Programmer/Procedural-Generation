@@ -13,5 +13,7 @@ typedef struct ChunkData {
 extern ChunkData createTextureChunk(SDL_Renderer *renderer, float start_x, float start_y, int seed, float freq);
 extern void freeTerrainTextureMap(ChunkData **to_free);
 extern ChunkData **initTerrainTextureMap(SDL_Renderer *renderer, int seed);
+extern int updateTextureMap(ChunkData **texture_map, SDL_Renderer *renderer, float cam_x,
+                            float cam_y, int seed, float freq);
 
 #endif // MAP_HANDLER_H

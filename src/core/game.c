@@ -27,13 +27,19 @@ static void gameLoop(int is_running, int seed, Context *pMain_context, Player *p
     time_t start = time(NULL);
     double delta_time = 1.0 / 200.0;
 
+    /*
+    Using SDL_FRect creates the black lines due to floating point impresision.
+    Using SDL_Rect and int vels will fix this issue. But we will lose movement and delta_Dist in <=0<=1 become zero.
+    Maybe use SDL_Rect or the ceil() with int values.
+    */
+
     while (is_running) {
         printf("FPS: %f\n", 1/delta_time);
         getDeltaTime(&start, &delta_time, &frame_c);
         if (handleEvents(&x_comp, &y_comp)) {
             break;
         }
-        handleState(pPlayer, pTerrain_map, &x_comp, &y_comp, &cam_x,
+        handleState(pPlayer, pTerrain_map, pMain_context->renderer, &x_comp, &y_comp, &cam_x,
                     &cam_y, delta_time, seed);
         render(pMain_context->renderer, pPlayer, *pTerrain_map, cam_x, cam_y);
         frame_c++;

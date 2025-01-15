@@ -17,9 +17,10 @@ void handleState(Player *pPlayer, ChunkData ***pTerrain_map, SDL_Renderer *rende
     // Racking up what the player moved.
     *pCam_x += world_x_offset;
     *pCam_y += world_y_offset;
+    /*
     if (!updateTextureMap(*pTerrain_map, renderer, *pCam_x, *pCam_y, seed, PERLIN_TERRAIN_FREQ)) {
         *pTerrain_map = NULL;
         assert("ERROR");
-    }
+    }*/
     *pX_comp = *pY_comp = 0;
 }

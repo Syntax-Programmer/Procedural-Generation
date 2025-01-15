@@ -4,13 +4,13 @@ static void renderObj(SDL_Renderer *renderer, Obj *pTo_move);
 static void handleKeyboard(int *pX_comp, int *pY_comp);
 
 void destroyContext(Context* pTo_destroy) {
-    if (pTo_destroy->win) {
-        SDL_DestroyWindow(pTo_destroy->win);
-        pTo_destroy->win = NULL;
-    }
     if (pTo_destroy->renderer) {
         SDL_DestroyRenderer(pTo_destroy->renderer);
         pTo_destroy->renderer = NULL;
+    }
+    if (pTo_destroy->win) {
+        SDL_DestroyWindow(pTo_destroy->win);
+        pTo_destroy->win = NULL;
     }
 }
 
@@ -22,7 +22,7 @@ Context createContext(const char *title, int w, int h) {
         fprintf(stderr, "ERROR: Failed in creating window for context with title: %s\n", title);
         return context;
     }
-    context.renderer = SDL_CreateRenderer(context.win, -1, SDL_RENDERER_ACCELERATED);
+    context.renderer = SDL_CreateRenderer(context.win, -1, 0);
     if (!context.renderer) {
         fprintf(stderr, "ERROR: Failed in creating renderer for context with title: %s\n", title);
         destroyContext(&context);

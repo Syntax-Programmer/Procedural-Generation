@@ -1,39 +1,49 @@
 #include "utils/obj.h"
 
-Obj createObj(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b) {
-    return (Obj){.r = r, .g = g, .b = b,
-                 .rect = {.x = x, .y = y, .w = w, .h = h}};
+Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
+    Obj object = {.r = r, .g = g, .b = b};
+
+    object.rect = (SDL_Rect){.x = x, .y = y, .w = w, .h = h};
+
+    return object;
+}
+void setStatBarCurr(StatBar *pBar, uint8_t to_set) {
+    uint8_t max_value = (*pBar & UPPER_MASK) >> 8;
+
+    if (to_set > max_value) {
+        to_set = max_value;
+    }
+    *pBar = (*pBar & UPPER_MASK) | to_set;
 }
 
-void setObjPos(Obj *pTo_update, float x, float y) {
-    pTo_update->rect.x = x;
-    pTo_update->rect.y = y;
+void setStatBarMax(StatBar *pBar, uint8_t to_set) {
+    uint8_t curr_value = *pBar & LOWER_MASK;
+
+    if (!to_set) {
+        fprintf(stderr, "Unable to set stat bar max to 0.\n");
+        return;
+    }
+    if (curr_value > to_set) {
+        setStatBarCurr(pBar, to_set);
+    }
+    *pBar = (*pBar & LOWER_MASK) | (to_set << 8);
 }
 
-void setObjSize(Obj *pTo_update, float w, float h) {
-    pTo_update->rect.w = w;
-    pTo_update->rect.h = h;
+uint8_t getStatBarMax(StatBar bar) {
+    return (bar & UPPER_MASK) >> 8;
 }
 
-void setRectPos(SDL_FRect *pTo_update, float x, float y) {
-    pTo_update->x = x;
-    pTo_update->y = y;
+uint8_t getStatBarCurr(StatBar bar) {
+    return (bar & LOWER_MASK);
 }
 
-void setRectSize(SDL_FRect *pTo_update, float w, float h) {
-    pTo_update->w = w;
-    pTo_update->h = h;
-}
+Player createPlayer(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b,
+                    uint16_t vel, uint8_t init_health) {
+    Player player = {.vel = vel, .health = 0};
 
-int isObjColliding(Obj *pObj1, Obj *pObj2) {
-    return (
-        pObj1->rect.x < pObj2->rect.x + pObj2->rect.w &&
-        pObj1->rect.x + pObj1->rect.w > pObj2->rect.x &&
-        pObj1->rect.y < pObj2->rect.y + pObj2->rect.h &&
-        pObj1->rect.y + pObj1->rect.h > pObj2->rect.y);
-}
+    setStatBarMax(&player.health, init_health);
+    setStatBarCurr(&player.health, init_health);
+    player.player_obj = createObj(x, y, w, h, r, g, b);
 
-Player createPlayer(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b,
-                    float vel) {
-    return (Player){.vel = vel, .obj = createObj(x, y, w, h, r, g, b)};
+    return player;
 }

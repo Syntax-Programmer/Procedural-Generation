@@ -1,24 +1,58 @@
 #!/bin/bash
 
-CC=gcc
-CFLAGS="-fsanitize=address -g -Og -Wall -Wextra -Iinclude -I/usr/include/SDL2 /usr/include/json-c/json.h  -Ofast -lSDL2 -lm"
+# Detect platform
+PLATFORM=$(uname)
+echo -e "Detected platform: ${PLATFORM}\n"
 
+# Compiler and flags
+CC=gcc
+CFLAGS="-Wall -Wextra -Iinclude/ -O3"
+LDFLAGS="-lm"
+
+# Platform-specific configurations
+case "$PLATFORM" in
+    "Linux")
+        CC=gcc
+        LDFLAGS="$LDFLAGS -lSDL2"
+        ;;
+    "Darwin")
+        CC=clang
+        LDFLAGS="$LDFLAGS -lSDL2"
+        ;;
+    "MINGW"*)
+        CC=x86_64-w64-mingw32-gcc
+        OUTPUT_EXTENSION=".exe"
+        LDFLAGS="$LDFLAGS -lmingw32 -lSDL2main -lSDL2"
+        ;;
+    *)
+        echo "Unsupported platform: $PLATFORM"
+        exit 1
+        ;;
+esac
+
+# Directories
 SRC_DIR="src"
 BUILD_DIR="build"
 
-CORE_SRC="${SRC_DIR}/core/game.c ${SRC_DIR}/core/graphics_handler.c ${SRC_DIR}/core/state_handler.c"
-UTILS_SRC="${SRC_DIR}/utils/obj.c ${SRC_DIR}/utils/physics.c ${SRC_DIR}/utils/map_handler.c"
-MAIN_SRC="${SRC_DIR}/main.c"
+# Source files
+CORE_SRC=$(find "${SRC_DIR}/core" -name "*.c")
+UTILS_SRC=$(find "${SRC_DIR}/utils" -name "*.c")
+MAIN_SRC=$(find "${SRC_DIR}" -maxdepth 1 -name "*.c")
 
-OUTPUT="${BUILD_DIR}/Game"
+# Output file
+OUTPUT="${BUILD_DIR}/A-RPG${OUTPUT_EXTENSION}"
 
+# Create build directory
 mkdir -p "${BUILD_DIR}"
 
-${CC} ${CFLAGS} ${CORE_SRC} ${UTILS_SRC} ${MAIN_SRC} -o "${OUTPUT}"
+# Compile and link
+echo -e "\nCompiling and linking for ${PLATFORM}...\n"
+${CC} ${CFLAGS} ${CORE_SRC} ${UTILS_SRC} ${MAIN_SRC} ${LDFLAGS} -o "${OUTPUT}"
 
+# Check for success
 if [ $? -eq 0 ]; then
-    echo "Compilation successful. Run the game using: ./${OUTPUT}"
+    echo -e "\nCompilation successful. Run the game using: ./${OUTPUT}\n"
 else
-    echo "Compilation failed"
+    echo -e "\nCompilation failed\n"
     exit 1
 fi

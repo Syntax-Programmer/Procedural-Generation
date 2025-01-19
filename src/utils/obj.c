@@ -1,5 +1,14 @@
 #include "utils/obj.h"
 
+void setRectPos(SDL_Rect *pRect, int x, int y) {
+    pRect->x = x;
+    pRect->y = y;
+}
+
+int isRectInFOV(SDL_Rect *pRect) {
+    return 0;
+}
+
 Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
     Obj object = {.r = r, .g = g, .b = b};
 

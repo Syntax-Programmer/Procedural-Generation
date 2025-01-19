@@ -17,6 +17,8 @@ typedef struct Player {
     uint16_t vel;
 } Player;
 
+extern void setRectPos(SDL_Rect *pRect, int x, int y);
+extern int isRectInFOV(SDL_Rect *pRect);
 extern Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b);
 extern void setStatBarCurr(StatBar *pBar, uint8_t to_set);
 extern void setStatBarMax(StatBar *pBar, uint8_t to_set);

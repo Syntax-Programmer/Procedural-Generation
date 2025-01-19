@@ -6,7 +6,7 @@ echo -e "Detected platform: ${PLATFORM}\n"
 
 # Compiler and flags
 CC=gcc
-CFLAGS="-Wall -Wextra -Iinclude/ -O3"
+CFLAGS="-fsanitize=address -Wall -Wextra -Iinclude/ -O3"
 LDFLAGS="-lm"
 
 # Platform-specific configurations
@@ -47,6 +47,8 @@ mkdir -p "${BUILD_DIR}"
 
 # Compile and link
 echo -e "\nCompiling and linking for ${PLATFORM}...\n"
+
+echo -e "\nErrors and Warnings:\n"
 ${CC} ${CFLAGS} ${CORE_SRC} ${UTILS_SRC} ${MAIN_SRC} ${LDFLAGS} -o "${OUTPUT}"
 
 # Check for success

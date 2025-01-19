@@ -47,7 +47,7 @@ static int initGame(GraphicsContext *pContext, int *pSeed, Chunk ***pTerrain_map
     *pSeed = time(NULL);
     *pTerrain_map = initTerrainMap(pContext->renderer, *pSeed);
     *pPlayer = createPlayer(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32,
-                            255, 0, 255, 300, 128);
+                            106, 129, 158, 300, 128);
     if (!pContext->win || !*pTerrain_map) { return 1; }
 
     return 0;
@@ -57,13 +57,15 @@ static void gameLoop(GraphicsContext *pContext, int seed, Chunk **terrain_map,
                      Player *pPlayer) {
     int frame_c = 0, cam_x = 0, cam_y = 0;
     uint16_t input_flags = 0;
-    double delta_time = 1.0 / 200;
+    double delta_time = FRAME_MIN_TIME / 1000.0;
     Uint32 delta_time_ms_bffr = SDL_GetTicks(), frame_start = 0, frame_duration = 0;
 
+    SDL_SetRenderDrawColor(pContext->renderer, pPlayer->player_obj.r, pPlayer->player_obj.g,
+                           pPlayer->player_obj.b, 255);
     while (1) {
         frame_start = SDL_GetTicks();
         getDeltaTime(&delta_time_ms_bffr, &delta_time, &frame_c);
-        printf("%f\n", 1.0/delta_time);
+        if (!frame_c % 10) { printf("FPS: %f\n", 1.0/delta_time); }
 
         input_flags = handleEvents();
         if (HAS_FLAG(input_flags, KEY_QUIT)) { break; }

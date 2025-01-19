@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include "utils/mapGen.h"
 #include "utils/globals.h"
 #include "utils/obj.h"

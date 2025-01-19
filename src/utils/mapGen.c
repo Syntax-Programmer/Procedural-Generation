@@ -108,7 +108,7 @@ static uint8_t ifGenNewTxtr(Chunk **chnk_map, int cam_x, int cam_y) {
     tr_fov = isRectInFOV(&tr);
     bl_fov = isRectInFOV(&bl);
     br_fov = isRectInFOV(&br);
-    if (tl_fov || tr_fov || bl_fov || br_fov) { return update_flags; }
+    if (tl_fov || tr_fov || bl_fov || br_fov) { return update_flags; } // Return early if no need to update
 
     return update_flags;
 }

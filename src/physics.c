@@ -1,6 +1,6 @@
-#include "utils/phy.h"
+#include "physics.h"
 
-void getDeltaTime(Uint32 *pStart, double *pDelta_time, int *pFrame_c) {
+void getDeltaTime(Uint32 *pStart, double *pDelta_time, uint8_t *pFrame_c) {
     Uint32 diff;
 
     if (*pFrame_c % 5 == 0 && (diff = SDL_GetTicks() - *pStart) >= 1000) {
@@ -10,7 +10,8 @@ void getDeltaTime(Uint32 *pStart, double *pDelta_time, int *pFrame_c) {
     }
 }
 
-void randomGradient(int ix, int iy, int seed, float *pGradient_x, float *pGradient_y) {
+void randomGradient(int32_t ix, int32_t iy, time_t seed,
+                    float *pGradient_x, float *pGradient_y) {
     // No precomputed gradients mean this works for any number of grid coordinates
     const unsigned w = 8 * sizeof(unsigned);
     const unsigned s = w / 2;
@@ -29,7 +30,7 @@ void randomGradient(int ix, int iy, int seed, float *pGradient_x, float *pGradie
     *pGradient_y = cos(random);
 }
 
-float dotGridGradient(int ix, int iy, float x, float y, int seed) {
+float dotGridGradient(int32_t ix, int32_t iy, float x, float y, time_t seed) {
     // Get gradient from integer coordinates
     float gradient_x, gradient_y;
 
@@ -42,7 +43,7 @@ float dotGridGradient(int ix, int iy, float x, float y, int seed) {
     return (dx * gradient_x + dy * gradient_y);
 }
 
-float perlin(float x, float y, int seed) {
+float perlin(float x, float y, time_t seed) {
     // WTF is this shit, I spent 2 days looking for the issue of why this doesn't work for
     //  negative numbers and you tell me that randomly replacing (int)x with floor(x) fixes it.
     //  FUCK YOU
@@ -66,10 +67,11 @@ float perlin(float x, float y, int seed) {
     return INTERPOLATE(ix0, ix1, sy);
 }
 
-void FBM(float freq, int x, int y, int seed, uint8_t *pR, uint8_t *pG, uint8_t *pB) {
+void FBM(float freq, int32_t x, int32_t y, time_t seed,
+         uint8_t *pR, uint8_t *pG, uint8_t *pB) {
     float val = 0, amp = 1;
 
-    for (int i = 0; i < PERLIN_OCTAVES; i++) {
+    for (int32_t i = 0; i < OCTAVES; i++) {
         val += perlin(x * freq, y * freq, seed) * amp;
         freq *= 2;
         amp /= 2;
@@ -79,7 +81,7 @@ void FBM(float freq, int x, int y, int seed, uint8_t *pR, uint8_t *pG, uint8_t *
         val = 1.0f;
     else if (val < -1.0f)
         val = -1.0f;
-    //* change this to not restirct for more natural terrain.
+    //* change this to not restrict for more natural terrain.
     val = (val + 1) * 0.5; // Restricting to [0, 1]
     if (val <= 0.2) { val = 0; }
     else if (val <= 0.4) { val = 0.2; }
@@ -89,11 +91,12 @@ void FBM(float freq, int x, int y, int seed, uint8_t *pR, uint8_t *pG, uint8_t *
     *pR = *pG = *pB = val * 255;
 }
 
-void normalizeMoveDist(int vel, double delta_time, uint16_t input_flags, int *pX_norm, int *pY_norm) {
+void normalizeMoveDist(int16_t vel, double delta_time, uint16_t input_flags,
+                       int8_t *pX_norm, int8_t *pY_norm) {
     // If only one of them is true, their respective sign will make accurate ans.
     // If both are true then they cancel out and no moving in that direction.
-    int x_comp = HAS_FLAG(input_flags, KEY_RIGHT) - HAS_FLAG(input_flags, KEY_LEFT),
-        y_comp = HAS_FLAG(input_flags, KEY_DOWN) - HAS_FLAG(input_flags, KEY_UP);
+    int8_t x_comp = HAS_FLAG(input_flags, RIGHT) - HAS_FLAG(input_flags, LEFT),
+        y_comp = HAS_FLAG(input_flags, DOWN) - HAS_FLAG(input_flags, UP);
     float magnitude = sqrt((x_comp * x_comp) + (y_comp * y_comp));
 
     if (magnitude == 0.0f) {

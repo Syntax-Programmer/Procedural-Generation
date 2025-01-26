@@ -62,8 +62,12 @@
         "gameloop",
         "hotbar",
         "keysym",
+        "LCTRL",
+        "LSHIFT",
         "MOUSEBUTTONDOWN",
         "PRESENTVSYNC",
+        "RCTRL",
+        "RSHIFT",
         "SDLHANDLER",
         "SDLK",
         "WINDOWPOS"

@@ -6,7 +6,7 @@ echo -e "Detected platform: ${PLATFORM}\n"
 
 # Compiler and flags
 CC=gcc
-CFLAGS="-std=c17 -Wall -Werror -Wextra -Iinclude/ -O3"
+CFLAGS="-fsanitize=address -std=c17 -Wall -Wextra -Iinclude/ -O1 -g -DDEBUG" # Remove ASan for shipping.
 LDFLAGS="-lm"
 
 # Platform-specific configurations
@@ -38,7 +38,7 @@ BUILD_DIR="build"
 MAIN_SRC=$(find "${SRC_DIR}" -name "*.c")
 
 # Output file
-OUTPUT="${BUILD_DIR}/A-RPG${OUTPUT_EXTENSION}"
+OUTPUT="${BUILD_DIR}/test${OUTPUT_EXTENSION}"
 
 # Create build directory
 mkdir -p "${BUILD_DIR}"

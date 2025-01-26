@@ -1,31 +1,35 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <SDL2/SDL.h>
 #include <time.h>
-#include "utils/globals.h"
-#include "utils/phy.h"
-#include "utils/mapGen.h"
-#include "utils/obj.h"
-#include "core/graphicsMgr.h"
-#include "core/stateMgr.h"
+#include "global.h"
+#include "physics.h"
+#include "graphics.h"
+#include "map.h"
+#include "obj.h"
+#include "stateManager.h"
 
 static uint16_t handleKeyboard();
 static uint16_t handleEvents();
-static int initGame(GraphicsContext *pContext, int *pSeed, Chunk ***pTerrain_map,
-                    Player *pPlayer);
-static void gameLoop(GraphicsContext *pContext, int seed, Chunk **terrain_map,
-                     Player *pPlayer);
-static void exitGame(GraphicsContext *pContext, Chunk **terrain_map);
+static uint8_t initGame(time_t *pSeed, GraphicsContext *pContext, Player *pPlayer,
+                        SDL_Texture ****pTerrain_map, SDL_Rect *pTop_left_rect);
+static void gameloop(time_t seed, GraphicsContext *pContext, Player *pPlayer,
+                     SDL_Texture ***terrain_map, SDL_Rect *pTop_left_rect);
+static void exitGame(GraphicsContext *pContext, SDL_Texture ***terrain_map);
+
 
 static uint16_t handleKeyboard() {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     uint16_t flags = 0;
 
-    if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) { SET_FLAG(flags, KEY_UP); }
-    if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) { SET_FLAG(flags, KEY_DOWN); }
-    if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) { SET_FLAG(flags, KEY_LEFT); }
-    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) { SET_FLAG(flags, KEY_RIGHT); }
-    if (state[SDL_SCANCODE_ESCAPE]) { SET_FLAG(flags, KEY_ESC); }
-    if (state[SDL_SCANCODE_LCTRL] || state[SDL_SCANCODE_RCTRL]) { SET_FLAG(flags, KEY_CTRL); }
-    if (state[SDL_SCANCODE_LSHIFT] || state[SDL_SCANCODE_RSHIFT]) { SET_FLAG(flags, KEY_SHIFT); }
-    if (state[SDL_SCANCODE_SPACE]) { SET_FLAG(flags, KEY_SPACE); }
+    if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) { SET_FLAG(flags, UP); }
+    if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) { SET_FLAG(flags, DOWN); }
+    if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) { SET_FLAG(flags, LEFT); }
+    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) { SET_FLAG(flags, RIGHT); }
+    if (state[SDL_SCANCODE_ESCAPE]) { SET_FLAG(flags, ESC); }
+    if (state[SDL_SCANCODE_LCTRL] || state[SDL_SCANCODE_RCTRL]) { SET_FLAG(flags, CTRL); }
+    if (state[SDL_SCANCODE_LSHIFT] || state[SDL_SCANCODE_RSHIFT]) { SET_FLAG(flags, SHIFT); }
+    if (state[SDL_SCANCODE_SPACE]) { SET_FLAG(flags, SPACE); }
 
     return flags;
 }
@@ -33,66 +37,64 @@ static uint16_t handleKeyboard() {
 static uint16_t handleEvents() {
     SDL_Event event;
 
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { return KEY_QUIT; }
+    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { return QUIT; }
     return handleKeyboard(); // TODO: Make it handleKeyboard() | handleMouse();
 }
 
-static int initGame(GraphicsContext *pContext, int *pSeed, Chunk ***pTerrain_map,
-                    Player *pPlayer) {
+static uint8_t initGame(time_t *pSeed, GraphicsContext *pContext, Player *pPlayer,
+                        SDL_Texture ****pTerrain_map, SDL_Rect *pTop_left_rect) {
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         fprintf(stderr, "Unable to initialize SDL.\n");
         return 1;
     }
-    *pContext = createContext(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE);
     *pSeed = time(NULL);
-    *pTerrain_map = initTerrainMap(pContext->renderer, *pSeed);
+    *pContext = createContext(SCREEN_WIDTH, SCREEN_HEIGHT, GAME_TITLE);
     *pPlayer = createPlayer(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32,
                             106, 129, 158, 300, 128);
+    *pTerrain_map = initTerrainMap(pContext->renderer, pTop_left_rect, *pSeed);
     if (!pContext->win || !*pTerrain_map) { return 1; }
 
     return 0;
 }
 
-static void gameLoop(GraphicsContext *pContext, int seed, Chunk **terrain_map,
-                     Player *pPlayer) {
-    int frame_c = 0, cam_x = 0, cam_y = 0;
+static void gameloop(time_t seed, GraphicsContext *pContext, Player *pPlayer,
+                     SDL_Texture ***terrain_map, SDL_Rect *pTop_left_rect) {
     uint16_t input_flags = 0;
+    uint8_t frame_c = 0;
     double delta_time = FRAME_MIN_TIME / 1000.0;
     Uint32 delta_time_ms_bffr = SDL_GetTicks(), frame_start = 0, frame_duration = 0;
 
-    SDL_SetRenderDrawColor(pContext->renderer, pPlayer->player_obj.r, pPlayer->player_obj.g,
-                           pPlayer->player_obj.b, 255);
     while (1) {
         frame_start = SDL_GetTicks();
         getDeltaTime(&delta_time_ms_bffr, &delta_time, &frame_c);
         if (!frame_c % 10) { printf("FPS: %f\n", 1.0/delta_time); }
-
         input_flags = handleEvents();
-        if (HAS_FLAG(input_flags, KEY_QUIT)) { break; }
-        handleState(pContext->renderer, terrain_map, pPlayer, delta_time,
-                    input_flags, seed, &cam_x, &cam_y);
-        render(pContext->renderer, terrain_map, pPlayer, cam_x, cam_y);
-
-        if ((frame_duration = SDL_GetTicks() - frame_start) < FRAME_MIN_TIME) {
+        if (HAS_FLAG(input_flags, QUIT)) { return; }
+        handleState(input_flags, seed, pTop_left_rect, terrain_map, pPlayer, delta_time);
+        render(pContext->renderer, terrain_map, pTop_left_rect, pPlayer);
+        if ((frame_duration = SDL_GetTicks() - frame_start) < FRAME_MIN_TIME) { // FPS capping
             SDL_Delay(FRAME_MIN_TIME - frame_duration);
         }
         frame_c++;
     }
 }
 
-static void exitGame(GraphicsContext *pContext, Chunk **terrain_map) {
+static void exitGame(GraphicsContext *pContext, SDL_Texture ***terrain_map) {
     exitGraphicsMgr(pContext);
-    freeChunkMap(terrain_map);
+    freeTerrainMap(terrain_map);
 }
 
 int main() {
+    time_t seed;
     GraphicsContext main_context;
-    int seed = 0;
-    Chunk **terrain_map = NULL;
+    SDL_Texture ***terrain_map = NULL;
+    SDL_Rect top_left_rect;
     Player player;
-    int failure = initGame(&main_context, &seed, &terrain_map, &player);
+    uint8_t running = !initGame(&seed, &main_context, &player, &terrain_map, &top_left_rect);
 
-    if (!failure) { gameLoop(&main_context, seed, terrain_map, &player); }
+    if (running) {
+        gameloop(seed, &main_context, &player, terrain_map, &top_left_rect);
+    }
     exitGame(&main_context, terrain_map);
 
     return 0;

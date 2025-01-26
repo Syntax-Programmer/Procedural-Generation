@@ -1,0 +1,1 @@
+1. Use 1 single rect (top-left) as a reference to all the textures rather than storing dest rects for each of them individually.

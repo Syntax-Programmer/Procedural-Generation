@@ -1,15 +1,11 @@
-#include "utils/obj.h"
+#include "obj.h"
 
-void setRectPos(SDL_Rect *pRect, int x, int y) {
-    pRect->x = x;
-    pRect->y = y;
+uint8_t isRectInFOV(SDL_Rect *pRect) {
+    return (pRect->x + pRect->w >= 0 && pRect->x <= SCREEN_WIDTH &&
+        pRect->y + pRect->h >= 0 && pRect->y <= SCREEN_HEIGHT);
 }
 
-int isRectInFOV(SDL_Rect *pRect) {
-    return 0;
-}
-
-Obj createObj(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b) {
+Obj createObj(int32_t x, int32_t y, int32_t w, int32_t h, Uint8 r, Uint8 g, Uint8 b) {
     Obj object = {.r = r, .g = g, .b = b};
 
     object.rect = (SDL_Rect){.x = x, .y = y, .w = w, .h = h};
@@ -46,7 +42,7 @@ uint8_t getStatBarCurr(StatBar bar) {
     return (bar & LOWER_MASK);
 }
 
-Player createPlayer(int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b,
+Player createPlayer(int32_t x, int32_t y, int32_t w, int32_t h, Uint8 r, Uint8 g, Uint8 b,
                     uint16_t vel, uint8_t init_health) {
     Player player = {.vel = vel, .health = 0};
 

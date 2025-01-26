@@ -92,4 +92,8 @@ This project is licensed under the MIT License. See the `LICENSE` file for more 
 
 ---
 
+
+### The directory structure of "utils" and "core" doesn't mean anything. It made sense in the starting but now it is just there.
+
+
 For any issues or suggestions, feel free to open an issue in the repository or contact the developer directly.

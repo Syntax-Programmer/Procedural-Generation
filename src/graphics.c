@@ -32,8 +32,8 @@ GraphicsContext createContext(uint32_t w, uint32_t h, const char *title) {
 }
 
 void render(SDL_Renderer *renderer, SDL_Texture ***terrain_map,
-            SDL_Rect *pTop_left_rect, Player *pPlayer) {
-    SDL_Rect temp = *pTop_left_rect;
+            SDL_Rect *pOrigin_rect, Player *pPlayer) {
+    SDL_Rect temp = *pOrigin_rect;
 
     SDL_RenderClear(renderer);
     for (int32_t y = 0; y < ROW_C; y++) {
@@ -44,7 +44,7 @@ void render(SDL_Renderer *renderer, SDL_Texture ***terrain_map,
             }
         }
         temp.y += CHUNK_SIZE;
-        temp.x = pTop_left_rect->x;
+        temp.x = pOrigin_rect->x;
     }
     SDL_SetRenderDrawColor(renderer, pPlayer->player_obj.r, pPlayer->player_obj.g, pPlayer->player_obj.b, 255);
     SDL_RenderFillRect(renderer, &pPlayer->player_obj.rect);

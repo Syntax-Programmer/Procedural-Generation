@@ -9,7 +9,7 @@
 #define GAME_TITLE "A-RPG"
 
 #define TILE_SIZE 1
-#define CHUNK_SIZE 250
+#define CHUNK_SIZE 500
 
 // The +2 for padding from either side.
 #define ROW_C (int)(ceil(SCREEN_HEIGHT / CHUNK_SIZE) + 2)

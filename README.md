@@ -1,7 +1,3 @@
-# A-RPG (A Role Playing Game)
-
-A simple role-playing game built using SDL2.
-
 ## Build the Game
 
 To build the game, run the following command:

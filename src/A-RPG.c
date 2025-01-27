@@ -12,9 +12,9 @@
 static uint16_t handleKeyboard();
 static uint16_t handleEvents();
 static uint8_t initGame(time_t *pSeed, GraphicsContext *pContext, Player *pPlayer,
-                        SDL_Texture ****pTerrain_map, SDL_Rect *pTop_left_rect);
+                        SDL_Texture ****pTerrain_map, SDL_Rect *pOrigin_rect);
 static void gameloop(time_t seed, GraphicsContext *pContext, Player *pPlayer,
-                     SDL_Texture ***terrain_map, SDL_Rect *pTop_left_rect);
+                     SDL_Texture ***terrain_map, SDL_Rect *pOrigin_rect);
 static void exitGame(GraphicsContext *pContext, SDL_Texture ***terrain_map);
 
 
@@ -42,7 +42,7 @@ static uint16_t handleEvents() {
 }
 
 static uint8_t initGame(time_t *pSeed, GraphicsContext *pContext, Player *pPlayer,
-                        SDL_Texture ****pTerrain_map, SDL_Rect *pTop_left_rect) {
+                        SDL_Texture ****pTerrain_map, SDL_Rect *pOrigin_rect) {
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         fprintf(stderr, "Unable to initialize SDL.\n");
         return 1;
@@ -51,14 +51,14 @@ static uint8_t initGame(time_t *pSeed, GraphicsContext *pContext, Player *pPlaye
     *pContext = createContext(SCREEN_WIDTH, SCREEN_HEIGHT, GAME_TITLE);
     *pPlayer = createPlayer(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32,
                             106, 129, 158, 300, 128);
-    *pTerrain_map = initTerrainMap(pContext->renderer, pTop_left_rect, *pSeed);
+    *pTerrain_map = initTerrainMap(pContext->renderer, pOrigin_rect, *pSeed);
     if (!pContext->win || !*pTerrain_map) { return 1; }
 
     return 0;
 }
 
 static void gameloop(time_t seed, GraphicsContext *pContext, Player *pPlayer,
-                     SDL_Texture ***terrain_map, SDL_Rect *pTop_left_rect) {
+                     SDL_Texture ***terrain_map, SDL_Rect *pOrigin_rect) {
     uint16_t input_flags = 0;
     uint8_t frame_c = 0;
     double delta_time = FRAME_MIN_TIME / 1000.0;
@@ -70,8 +70,8 @@ static void gameloop(time_t seed, GraphicsContext *pContext, Player *pPlayer,
         if (!frame_c % 10) { printf("FPS: %f\n", 1.0/delta_time); }
         input_flags = handleEvents();
         if (HAS_FLAG(input_flags, QUIT)) { return; }
-        handleState(input_flags, seed, pTop_left_rect, terrain_map, pPlayer, delta_time);
-        render(pContext->renderer, terrain_map, pTop_left_rect, pPlayer);
+        handleState(input_flags, seed, pOrigin_rect, terrain_map, pPlayer, delta_time);
+        render(pContext->renderer, terrain_map, pOrigin_rect, pPlayer);
         if ((frame_duration = SDL_GetTicks() - frame_start) < FRAME_MIN_TIME) { // FPS capping
             SDL_Delay(FRAME_MIN_TIME - frame_duration);
         }
@@ -88,12 +88,12 @@ int main() {
     time_t seed;
     GraphicsContext main_context;
     SDL_Texture ***terrain_map = NULL;
-    SDL_Rect top_left_rect;
+    SDL_Rect origin_rect;
     Player player;
-    uint8_t running = !initGame(&seed, &main_context, &player, &terrain_map, &top_left_rect);
+    uint8_t running = !initGame(&seed, &main_context, &player, &terrain_map, &origin_rect);
 
     if (running) {
-        gameloop(seed, &main_context, &player, terrain_map, &top_left_rect);
+        gameloop(seed, &main_context, &player, terrain_map, &origin_rect);
     }
     exitGame(&main_context, terrain_map);
 

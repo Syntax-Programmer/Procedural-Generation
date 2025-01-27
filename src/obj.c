@@ -1,8 +1,8 @@
 #include "obj.h"
 
 uint8_t isRectInFOV(SDL_Rect *pRect) {
-    return (pRect->x + pRect->w >= 0 && pRect->x <= SCREEN_WIDTH &&
-        pRect->y + pRect->h >= 0 && pRect->y <= SCREEN_HEIGHT);
+    return (pRect->x + pRect->w >= -CHUNK_SIZE && pRect->x <= SCREEN_WIDTH + CHUNK_SIZE &&
+        pRect->y + pRect->h >= -CHUNK_SIZE && pRect->y <= SCREEN_HEIGHT + CHUNK_SIZE);
 }
 
 Obj createObj(int32_t x, int32_t y, int32_t w, int32_t h, Uint8 r, Uint8 g, Uint8 b) {

@@ -8,6 +8,6 @@ void handleState(uint16_t input_flags, time_t seed, SDL_Rect *pOrigin_rect,
     if (dx || dy) {
         pOrigin_rect->x -= dx;
         pOrigin_rect->y -= dy;
-        updateTerrainMap(terrain_map, pOrigin_rect, seed);
+        //updateTerrainMap(terrain_map, pOrigin_rect, seed);
     }
 }

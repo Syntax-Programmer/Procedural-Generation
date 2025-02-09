@@ -67,6 +67,7 @@
         "MOUSEBUTTONDOWN",
         "PRESENTVSYNC",
         "RCTRL",
+        "rrrrrrrrggggggggbbbbbbbbaaaaaaaa",
         "RSHIFT",
         "SDLHANDLER",
         "SDLK",

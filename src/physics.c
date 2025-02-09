@@ -1,4 +1,29 @@
-#include "physics.h"
+#include "../include/physics.h"
+
+/// @brief Calculates the random gradient of a given 2D point.
+/// @param ix X-coordinate of the grid.
+/// @param iy Y-coordinate of the grid.
+/// @param seed Random seed for generating gradients.
+/// @param pGradient_x Pointer to store the X component of the gradient.
+/// @param pGradient_y Pointer to store the Y component of the gradient.
+static void randomGradient(int32_t ix, int32_t iy, time_t seed,
+                           float *pGradient_x, float *pGradient_y);
+
+/// @brief Computes the dot product between a gradient vector and a distance vector.
+/// @param ix X-coordinate of the grid.
+/// @param iy Y-coordinate of the grid.
+/// @param x X-coordinate of the point.
+/// @param y Y-coordinate of the point.
+/// @param seed Random seed for generating gradients.
+/// @return The dot product result.
+static float dotGridGradient(int32_t ix, int32_t iy, float x, float y, time_t seed);
+
+///@brief Computes Perlin noise at a given point.
+///@param x X-coordinate of the point.
+///@param y Y-coordinate of the point.
+///@param seed Random seed for generating noise.
+///@return Perlin noise value in range [-1, 1].
+static float perlin(float x, float y, time_t seed);
 
 void getDeltaTime(Uint32 *pStart, double *pDelta_time, uint8_t *pFrame_c) {
     Uint32 diff;
@@ -10,12 +35,12 @@ void getDeltaTime(Uint32 *pStart, double *pDelta_time, uint8_t *pFrame_c) {
     }
 }
 
-void randomGradient(int32_t ix, int32_t iy, time_t seed,
-                    float *pGradient_x, float *pGradient_y) {
+static void randomGradient(int32_t ix, int32_t iy, time_t seed,
+                           float *pGradient_x, float *pGradient_y) {
     // No precomputed gradients mean this works for any number of grid coordinates
-    const unsigned w = 8 * sizeof(unsigned);
-    const unsigned s = w / 2;
-    unsigned a = ix, b = iy;
+    const uint32_t w = 8 * sizeof(uint32_t);
+    const uint32_t s = w / 2;
+    uint32_t a = ix, b = iy;
 
     a *= seed;
     b ^= a << s | a >> (w - s);
@@ -30,7 +55,7 @@ void randomGradient(int32_t ix, int32_t iy, time_t seed,
     *pGradient_y = cos(random);
 }
 
-float dotGridGradient(int32_t ix, int32_t iy, float x, float y, time_t seed) {
+static float dotGridGradient(int32_t ix, int32_t iy, float x, float y, time_t seed) {
     // Get gradient from integer coordinates
     float gradient_x, gradient_y;
 
@@ -43,14 +68,13 @@ float dotGridGradient(int32_t ix, int32_t iy, float x, float y, time_t seed) {
     return (dx * gradient_x + dy * gradient_y);
 }
 
-float perlin(float x, float y, time_t seed) {
+static float perlin(float x, float y, time_t seed) {
     // WTF is this shit, I spent 2 days looking for the issue of why this doesn't work for
     //  negative numbers and you tell me that randomly replacing (int)x with floor(x) fixes it.
     //  FUCK YOU
-
     // Determine grid cell corner coordinates
-    int x0 = floor(x), y0 = floor(y);
-    int x1 = x0 + 1, y1 = y0 + 1;
+    int32_t x0 = floor(x), y0 = floor(y);
+    int32_t x1 = x0 + 1, y1 = y0 + 1;
     // Compute Interpolation weights
     float sx = x - x0, sy = y - y0;
     // Compute and interpolate top two corners
@@ -67,9 +91,10 @@ float perlin(float x, float y, time_t seed) {
     return INTERPOLATE(ix0, ix1, sy);
 }
 
-void FBM(float freq, int32_t x, int32_t y, time_t seed,
-         uint8_t *pR, uint8_t *pG, uint8_t *pB) {
+uint32_t FBM(float freq, int32_t x, int32_t y, time_t seed) {
     float val = 0, amp = 1;
+    uint8_t color_val;
+    uint32_t final_color;
 
     for (int32_t i = 0; i < OCTAVES; i++) {
         val += perlin(x * freq, y * freq, seed) * amp;
@@ -88,21 +113,26 @@ void FBM(float freq, int32_t x, int32_t y, time_t seed,
     else if (val <= 0.6) { val = 0.4; }
     else if (val <= 0.8) { val = 0.6; }
     else { val = 0.8; }
-    *pR = *pG = *pB = val * 255;
+    color_val = (int)(val * 255);
+    final_color = color_val << 24 | color_val << 16 | color_val << 8 | 255;
+
+    return final_color;
 }
 
-void normalizeMoveDist(int16_t vel, double delta_time, uint16_t input_flags,
-                       int8_t *pX_norm, int8_t *pY_norm) {
+Vec2 computeMoveDist(int16_t vel, double delta_time, uint16_t input_flags) {
     // If only one of them is true, their respective sign will make accurate ans.
     // If both are true then they cancel out and no moving in that direction.
     int8_t x_comp = HAS_FLAG(input_flags, RIGHT) - HAS_FLAG(input_flags, LEFT),
         y_comp = HAS_FLAG(input_flags, DOWN) - HAS_FLAG(input_flags, UP);
     float magnitude = sqrt((x_comp * x_comp) + (y_comp * y_comp));
+    Vec2 norm_dist;
 
     if (magnitude == 0.0f) {
-        *pX_norm = *pY_norm = 0;
-        return;
+        norm_dist.x = norm_dist.y = 0;
+    } else {
+        norm_dist.x = (vel * x_comp * delta_time) / magnitude;
+        norm_dist.y = (vel * y_comp * delta_time) / magnitude;
     }
-    *pX_norm = (vel * x_comp * delta_time) / magnitude;
-    *pY_norm = (vel * y_comp * delta_time) / magnitude;
+
+    return norm_dist;
 }

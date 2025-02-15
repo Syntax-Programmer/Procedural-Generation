@@ -6,7 +6,7 @@ echo -e "Detected platform: ${PLATFORM}\n"
 
 # Compiler and flags
 CC=gcc
-CFLAGS="-std=c17 -Wall -Werror -Wextra -Iinclude/ -O3"
+CFLAGS="-std=c17 -Wall -Werror -Wextra -Iinclude/ -O2"
 LDFLAGS="-lm"
 
 # Platform-specific configurations

@@ -1,1 +1,2 @@
-1. Use 1 single rect (top-left) as a reference to all the textures rather than storing dest rects for each of them individually.
+Use a Top-Left index that is the index of the top left chunk in the terrain map. This index wraps around to 0 if index > len(terrain_map) else if len(terrain_map) - 1 if index < 0.
+This allows us to not shift elements inside the terrain_map when loading new ones in.

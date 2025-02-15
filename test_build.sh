@@ -6,7 +6,7 @@ echo -e "Detected platform: ${PLATFORM}\n"
 
 # Compiler and flags
 CC=gcc
-CFLAGS="-fsanitize=address -std=c17 -Wall -Wextra -Iinclude/ -O1 -g -DDEBUG" # Remove ASan for shipping.
+CFLAGS="-fsanitize=address -std=c17 -Wall -Wextra -Iinclude/ -O1 -g" # Remove ASan for shipping.
 LDFLAGS="-lm"
 
 # Platform-specific configurations

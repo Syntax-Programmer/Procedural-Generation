@@ -10,8 +10,8 @@
 
 /* NOTE: MAKE sure that CHUNK_SIZE % TILE_SIZE == 0 else the editTexture
 function in mapMgr fails. */
-#define TILE_SIZE 16
-#define CHUNK_SIZE 128
+#define TILE_SIZE 1
+#define CHUNK_SIZE 10
 
 #if CHUNK_SIZE % TILE_SIZE != 0
     #error "CHUNK_SIZE must be a direct multiple of TILE_SIZE to proceed."

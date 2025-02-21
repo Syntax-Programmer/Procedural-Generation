@@ -163,6 +163,7 @@ static void handleState(uint16_t input_flags, time_t seed, PosHandle *pWorld_pos
     if (delta_dist.x || delta_dist.y) {
         pWorld_pos_handle->cam_pos.x += delta_dist.x;
         pWorld_pos_handle->cam_pos.y += delta_dist.y;
+        updateTerrainMap(terrain_map, pWorld_pos_handle, input_flags, seed);
     }
 }
 
@@ -176,7 +177,7 @@ static void gameloop(time_t seed, GraphicsContext *pContext,
     while (1) {
         frame_start = SDL_GetTicks();
         getDeltaTime(&delta_time_ms_bffr, &delta_time_sec, &frame_c);
-        if (!(frame_c % 10)) { printf("FPS: %f\n", 1.0/delta_time_sec); }
+        //if (!(frame_c % 10)) { printf("FPS: %f\n", 1.0/delta_time_sec); }
         input_flags = handleEvents();
         if (HAS_FLAG(input_flags, QUIT)) { return; }
         render(pContext->renderer, terrain_map, pWorld_pos_handle);

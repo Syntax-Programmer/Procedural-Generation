@@ -3,7 +3,7 @@
 /*
  * @brief Calculates the random gradient of the given 2-D point.
  *
- * Using bit manipulation we calculate the random gradient of the fiven grid pos.
+ * Using bit manipulation we calculate the random gradient of the given grid pos.
  * Using no precomputed gradients means this works for any number of grid coordinates.
  *
  * @param pGrid_pos The int position vector of the grid to calculate the gradient for.

@@ -25,15 +25,17 @@ typedef struct FloatVec2 {
 /*
  * Has the data of map and cam positions.
  *
- * @elem origin_chunk_pos The global position of the top left most chunk in the maps.
+ * @elem tl_chunk_pos The global position of the top-left most chunk in the maps.
  * @elem cam_pos Initially at 0, this is the camera position as the player moves.
+ * @elem tl_chunk_pos The position of the top-left most chunk in the maps.
  *
  * So with this logic, screen position of a chunk is:
  * global_coord - cam_coords.
  */
 typedef struct PosHandle {
-    IntVec2 origin_chunk_pos;
+    IntVec2 tl_chunk_pos;
     IntVec2 cam_pos;
+    uint16_t tl_chunk_index;
 } PosHandle;
 
 /*

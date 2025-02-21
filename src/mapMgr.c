@@ -1,4 +1,5 @@
 #include "../include/mapMgr.h"
+#include <SDL2/SDL_log.h>
 
 /*
  * @brief Applies a perlin noise texture to the give SDL_Texture.
@@ -66,16 +67,16 @@ void initTerrainMap(SDL_Renderer *renderer, SDL_Texture ***pTerrain_map,
         SDL_Log("Couldn't allocate mem for SDL_Texture array. Malloc failure.");
         return;
     }
-    pMap_pos_handle->cam_pos.x = pMap_pos_handle->cam_pos.y = 0;
-    pMap_pos_handle->origin_chunk_pos.x = scrn_pos.x;
-    pMap_pos_handle->origin_chunk_pos.y = scrn_pos.y;
-    for (int i = 0; i < CHUNK_C; i++) {
+    pMap_pos_handle->cam_pos.x = pMap_pos_handle->cam_pos.y = pMap_pos_handle->tl_chunk_index = 0;
+    pMap_pos_handle->tl_chunk_pos.x = scrn_pos.x;
+    pMap_pos_handle->tl_chunk_pos.y = scrn_pos.y;
+    for (int32_t i = 0; i < CHUNK_C; i++) {
         if (i && !(i % COL_C)) { // Not 0 and next row.
             scrn_pos.y += CHUNK_SIZE;
             scrn_pos.x = -CHUNK_SIZE;
         }
         (*pTerrain_map)[i] = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-                                             SDL_TEXTUREACCESS_STREAMING, CHUNK_SIZE, CHUNK_SIZE);
+                                               SDL_TEXTUREACCESS_STREAMING, CHUNK_SIZE, CHUNK_SIZE);
         if (!(*pTerrain_map)[i]) { continue; } // The texture will be blank till it is recreated.
         noiseToTerrainTexture((*pTerrain_map)[i], seed, &scrn_pos);
         scrn_pos.x += CHUNK_SIZE;
@@ -111,4 +112,33 @@ uint8_t getTerrainChunkUpdateFlag(PosHandle *pWorld_pos_handle, uint16_t input_f
     }
 
     return update_flags;
+}
+
+void updateTerrainMap(SDL_Texture **terrain_map, PosHandle *pWorld_pos_handle,
+                      uint16_t input_flags, time_t seed) {
+    uint8_t update_flags = getTerrainChunkUpdateFlag(pWorld_pos_handle, input_flags);
+
+    if (!update_flags) { return; }
+
+    int32_t row_start_index = (int)(pWorld_pos_handle->tl_chunk_index / ROW_C) * COL_C,
+             col_current_index = pWorld_pos_handle->tl_chunk_index % CHUNK_C;
+
+    if (HAS_FLAG(update_flags, RIGHT)) {
+        pWorld_pos_handle->tl_chunk_pos.x -= CHUNK_SIZE;
+        pWorld_pos_handle->tl_chunk_index = (col_current_index + 1) % COL_C + row_start_index;
+    } else if (HAS_FLAG(update_flags, LEFT)) {
+        pWorld_pos_handle->tl_chunk_pos.x += CHUNK_SIZE;
+        pWorld_pos_handle->tl_chunk_index = abs(col_current_index + COL_C - 1) % COL_C + row_start_index;
+    }
+    if (HAS_FLAG(update_flags, UP)) {
+        pWorld_pos_handle->tl_chunk_pos.y += CHUNK_SIZE;
+        pWorld_pos_handle->tl_chunk_index += COL_C;
+        pWorld_pos_handle->tl_chunk_index %= CHUNK_C;
+    } else if (HAS_FLAG(update_flags, DOWN)) {
+        pWorld_pos_handle->tl_chunk_pos.y -= CHUNK_SIZE;
+        // We take abs here as subtracting can yeild negative results.
+        pWorld_pos_handle->tl_chunk_index = abs(pWorld_pos_handle->tl_chunk_index - COL_C);
+        pWorld_pos_handle->tl_chunk_index %= CHUNK_C;
+    }
+    SDL_Log("%d\n", pWorld_pos_handle->tl_chunk_index);
 }

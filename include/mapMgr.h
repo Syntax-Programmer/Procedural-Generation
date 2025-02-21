@@ -32,3 +32,6 @@ extern void initTerrainMap(SDL_Renderer *renderer, SDL_Texture ***pTerrain_map,
  * @param terrain_map The terrain_map that is to be freed.
  */
 extern void freeTerrainMap(SDL_Texture **terrain_map);
+
+extern void updateTerrainMap(SDL_Texture **terrain_map, PosHandle *pWorld_pos_handle,
+                             uint16_t input_flags, time_t seed);

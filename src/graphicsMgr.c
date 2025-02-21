@@ -28,7 +28,7 @@ void initGraphicsContext(GraphicsContext *pContext, uint32_t w,
         SDL_Log("Unable to create SDL_Window: %s", SDL_GetError());
         return;
     }
-    pContext->renderer = SDL_CreateRenderer(pContext->win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+    pContext->renderer = SDL_CreateRenderer(pContext->win, -1, SDL_RENDERER_ACCELERATED);
     if (!pContext->renderer) {
         SDL_Log("Unable to create SDL_Renderer: %s", SDL_GetError());
         destroyContext(pContext);
@@ -36,20 +36,23 @@ void initGraphicsContext(GraphicsContext *pContext, uint32_t w,
 }
 
 void render(SDL_Renderer *renderer, SDL_Texture **terrain_map, PosHandle *pWorld_pos_handle) {
+    int32_t initial_x_pos = -CHUNK_SIZE - pWorld_pos_handle->cam_pos.x,
+            j = pWorld_pos_handle->tl_chunk_index, row_progress = 0; // To improve performance by reducing redundant subtraction.
     SDL_Rect terrain_chunk_pos = {.w = CHUNK_SIZE, .h = CHUNK_SIZE,
-                                    //! Change it to -CHUNK_SIZE and -CHUNK_SIZE when updating the terrain map feature is implemented.
-                                  .x = pWorld_pos_handle->origin_chunk_pos.x - pWorld_pos_handle->cam_pos.x,
-                                  .y = pWorld_pos_handle->origin_chunk_pos.y - pWorld_pos_handle->cam_pos.y};
+                                  .x = initial_x_pos,
+                                  .y = -CHUNK_SIZE - pWorld_pos_handle->cam_pos.y};
 
     SDL_RenderClear(renderer);
-    for (int i = 0; i < CHUNK_C; i++) {
-        if (i && !(i % COL_C)) { // Not 0 and next row.
-            terrain_chunk_pos.y += CHUNK_SIZE;
-            //! Here also to -CHUNK_SIZE.
-            terrain_chunk_pos.x = pWorld_pos_handle->origin_chunk_pos.x - pWorld_pos_handle->cam_pos.x;
-        }
-        SDL_RenderCopy(renderer, terrain_map[i], NULL, &terrain_chunk_pos);
+    for (int32_t i = 0; i < CHUNK_C; i++, j++) {
+        /* Using j % CHUNK_C to instead of shifting the elemets in the array,
+        We logically move the starting index and let the index overflow/underflow to wrap around the array.*/
+        SDL_RenderCopy(renderer, terrain_map[j % CHUNK_C], NULL, &terrain_chunk_pos);
         terrain_chunk_pos.x += CHUNK_SIZE;
+        if (++row_progress == COL_C) { // Avoiding modulo for performance.
+            terrain_chunk_pos.y += CHUNK_SIZE;
+            terrain_chunk_pos.x = initial_x_pos;
+            row_progress = 0;
+        }
     }
     SDL_RenderPresent(renderer);
 }

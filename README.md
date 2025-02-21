@@ -7,3 +7,5 @@ I have tried 4 different approaches, maybe 3 rewrites, The first one was the onl
 I just wanted to shift to using best practices using textures, sliding window approach in an array instead of a doublly linked list array and using rects to render tiles
 
 The results i got was super sad, the approach that i spent weeks stressing over even gave worse perfromace than the one which took more steps and mem
+
+nothing works as the steps i have to take seem unavoidable but they hurt performance

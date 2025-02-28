@@ -163,7 +163,7 @@ static void handleState(uint16_t input_flags, time_t seed, PosHandle *pWorld_pos
     if (delta_dist.x || delta_dist.y) {
         pWorld_pos_handle->cam_pos.x += delta_dist.x;
         pWorld_pos_handle->cam_pos.y += delta_dist.y;
-        updateTerrainMap(terrain_map, pWorld_pos_handle, input_flags, seed);
+        // updateTerrainMap(terrain_map, pWorld_pos_handle, input_flags, seed);
     }
 }
 
